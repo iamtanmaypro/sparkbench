@@ -1,0 +1,64 @@
+:root {
+  --bg: #101418;
+  --text: #c9d1d9;
+  --text-h: #f0f3f6;
+  --border: #2a3138;
+  --accent: #f5a623;
+  --banner-bg: #18202a;
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+
+  font-family: var(--sans);
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app-shell {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+h1 {
+  color: var(--text-h);
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+.webmcp-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background: var(--banner-bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 32px;
+  font-size: 15px;
+  line-height: 145%;
+}
+
+.webmcp-banner p {
+  margin: 0;
+  flex: 1;
+}
+
+.webmcp-banner button {
+  font: inherit;
+  font-size: 14px;
+  color: var(--text-h);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.webmcp-banner button:hover {
+  border-color: var(--accent);
+}
