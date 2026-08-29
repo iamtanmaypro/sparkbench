@@ -479,6 +479,25 @@ h1 {
   filter: drop-shadow(0 0 6px var(--agent));
 }
 
+/* focus_component ("look here" from the agent): pulse the target part a few
+   times, then settle — the glow fades rather than nagging forever. */
+.comp-node.focus-pulse .comp-body {
+  outline: 2px solid var(--agent);
+  outline-offset: 3px;
+  border-radius: 6px;
+  animation: focus-pulse 0.8s ease-in-out 3;
+}
+
+@keyframes focus-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(122, 162, 247, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(122, 162, 247, 0.35);
+  }
+}
+
 svg .stroke-body {
   stroke: var(--comp-stroke);
   stroke-width: 2;

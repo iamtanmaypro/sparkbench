@@ -131,6 +131,12 @@ export interface BenchState {
   log: LogEntry[]
   agentActive: boolean
   proposals: Proposal[]
+  /**
+   * Latest "look here" request (WebMCP focus_component). seq increments per
+   * request so repeated focus on the same component still re-triggers the
+   * canvas pan/zoom. Ephemeral UI state; never persisted.
+   */
+  focusRequest: { id: string; seq: number } | null
 
   // --- actions (the ONLY mutation paths) -------------------------------------
   addComponent: (type: ComponentType, pos?: { x: number; y: number }, origin?: Origin) => string
@@ -149,6 +155,7 @@ export interface BenchState {
   removeNote: (id: string) => void
   setAgentActive: (active: boolean) => void
   logEvent: (actor: LogEntry['actor'], text: string) => void
+  requestFocus: (id: string) => void
   propose: (action: ProposalAction, summary: string) => Proposal
   approveProposal: (id: string) => boolean
   rejectProposal: (id: string) => void
@@ -253,6 +260,7 @@ export const useBenchStore = create<BenchState>((set, get) => ({
   log: [],
   agentActive: false,
   proposals: [],
+  focusRequest: null,
 
   addComponent: (type, pos, origin = 'human') => {
     // makeId's module counter is blind to lesson-seeded ids (bat1, r1...), so
@@ -376,6 +384,19 @@ export const useBenchStore = create<BenchState>((set, get) => ({
 
   logEvent: (actor, text) =>
     set((s) => ({ log: [...s.log.slice(-199), { id: logSeq++, at: Date.now(), actor, text }] })),
+
+  /**
+   * "Look here" from the agent (focus_component tool): select the part so the
+   * Inspector follows, bump the focus seq so the canvas pans to it, and leave
+   * a visible trail in the shared log. No circuit change, so no re-solve.
+   */
+  requestFocus: (id) => {
+    set((s) => ({
+      focusRequest: { id, seq: (s.focusRequest?.seq ?? 0) + 1 },
+      selectedId: id,
+    }))
+    get().logEvent('Agent', `asked you to look at ${id}`)
+  },
 
   propose: (action, summary) => {
     const proposal: Proposal = {

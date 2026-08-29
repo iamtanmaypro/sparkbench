@@ -1,11 +1,18 @@
 import { WebMcpBanner } from './ui/WebMcpBanner'
 import { WorkbenchPage } from './ui/WorkbenchPage'
+import { useBenchTools } from './webmcp/useTool'
+import { benchTools } from './webmcp/register'
 
 /**
- * Phase 2 shell: the full workbench is the product. The WebMCP banner stays
- * for runtimes without the API; the app is fully usable solo either way.
+ * Phase 3 shell: the full workbench plus the live WebMCP tool inventory
+ * (reads + navigation; writes arrive with the approval flow). The banner
+ * stays for runtimes without the API; the app is fully usable solo either
+ * way (Stage-1 viability).
  */
 function App() {
+  // benchTools is a module-level array, so this registers once and stays stable.
+  useBenchTools(benchTools)
+
   return (
     <main className="app-shell">
       <WebMcpBanner />

@@ -60,6 +60,17 @@ function WorkbenchInner() {
   const removeWire = useBenchStore((s) => s.removeWire)
   const removeComponent = useBenchStore((s) => s.removeComponent)
   const select = useBenchStore((s) => s.select)
+  const focusRequest = useBenchStore((s) => s.focusRequest)
+
+  // Agent "look here" (focus_component): pan/zoom to the part. Same pattern
+  // as the lesson fit above: settle after layout, no duration (rAF throttle).
+  useEffect(() => {
+    if (!focusRequest) return
+    const t = setTimeout(() => {
+      rf.fitView({ nodes: [{ id: focusRequest.id }], padding: 0.6, maxZoom: 1.5 })
+    }, 60)
+    return () => clearTimeout(t)
+  }, [focusRequest, rf])
 
   const [rfNodes, setRfNodes, onNodesChange] = useNodesState<BenchNodeRF>(
     storeNodes.map((n) => ({

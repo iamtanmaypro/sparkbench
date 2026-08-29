@@ -150,7 +150,10 @@ export const ComponentNode = memo(function ComponentNode({ id, data }: NodeProps
   const toggleSwitch = useBenchStore((s) => s.toggleSwitch)
   const select = useBenchStore((s) => s.select)
   const selectedId = useBenchStore((s) => s.selectedId)
+  const focusId = useBenchStore((s) => s.focusRequest?.id ?? null)
   const isSelected = selectedId === id
+  // focus_component targets this part: pulse so "look here" reads at a glance.
+  const isFocused = focusId === id
 
   const faulty = !!(d.burnedOut || d.blown)
 
@@ -169,6 +172,7 @@ export const ComponentNode = memo(function ComponentNode({ id, data }: NodeProps
         'comp-node',
         `type-${d.componentType}`,
         isSelected ? 'is-selected' : '',
+        isFocused ? 'focus-pulse' : '',
         d.lit ? 'is-lit' : '',
         faulty ? 'is-faulty' : '',
         d.origin === 'agent' ? 'from-agent' : '',

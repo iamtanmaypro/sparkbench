@@ -41,3 +41,26 @@ export function useTool(tool: ToolDefinition): boolean {
 
   return available
 }
+
+/**
+ * Register the whole tool inventory (register.ts `benchTools`). Pass a
+ * module-level array so the effect dependency is stable across renders.
+ * StrictMode's mount-unmount-mount still ends with every tool registered.
+ */
+export function useBenchTools(tools: ToolDefinition[]): boolean {
+  const [available, setAvailable] = useState(() => getModelContext() !== null)
+
+  useEffect(() => {
+    const mc = getModelContext()
+    if (!mc) {
+      setAvailable(false)
+      return
+    }
+    for (const tool of tools) mc.registerTool(tool)
+    return () => {
+      for (const tool of tools) mc.removeTool?.(tool.name)
+    }
+  }, [tools])
+
+  return available
+}

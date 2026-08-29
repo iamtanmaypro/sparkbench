@@ -11,7 +11,7 @@ interface ModelContextToolResultContent {
   text?: string
 }
 
-interface ModelContextToolCallOptions {
+export interface ModelContextToolCallOptions {
   /** AbortSignal from the host; every execute() must respect it. */
   signal?: AbortSignal
 }
