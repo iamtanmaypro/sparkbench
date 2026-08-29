@@ -110,7 +110,16 @@ a 3px left border in `--spark` and a paper-clipped header row (mono, uppercase
 agent = copper tint, human = slate tint, state chips (lit/dark/fault) = signal/alarm.
 
 **Inputs.** 1px `--line-strong` border, `--surface` fill, 6px radius, 8px padding,
-mono for numeric fields.
+mono for numeric fields. Lab Report fields additionally read as a fillable paper
+form: mono ink for typed values, sans-italic `--ink-faint` placeholders, hover
+border `--ink-soft` on a `#fff` fill so the field plainly invites typing.
+
+**Scrollbars.** Quiet instrument chrome on every scrollable region, never the
+native OS slab. Firefox: `scrollbar-width: thin` and
+`scrollbar-color: var(--line-strong) transparent`. WebKit: 10px track
+(transparent), 6px rounded thumb in `--line-strong` (via a 2px transparent clip
+border), hover `--ink-soft`, transparent corner. Inner panels that scroll
+(action log list, approval layer) use a slimmer 8px variant.
 
 **Toggle / switch controls.** Small lab-knife-switch look: 34x18 track, thumb slides,
 `--signal` when closed, `--line-strong` when open.
@@ -210,6 +219,9 @@ DON'T:
   horizontal strip above the canvas.
 - <720px: stacked single column; canvas min-height 420px; approval cards full-width.
 - Touch targets >=40px on all interactive elements at every breakpoint.
+  Exception: compact rail rows (lesson tabs, palette buttons) sit at 36px so
+  Lessons 01-05 plus the parts bin fit one screen at a 900px-tall viewport
+  without scrolling; hover and focus affordances carry the hit comfort.
 
 ## 10. Agent prompt guide
 

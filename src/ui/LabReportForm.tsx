@@ -77,7 +77,9 @@ export function LabReportForm() {
       aria-label="Lab report"
     >
       <div className="panel-title">Lab report</div>
-      <p className="muted small">Your agent can fill this in for you; you always press Submit.</p>
+      <p className="lab-report-helper">
+        The agent can fill this for you, or type it yourself. Either way, you press Submit.
+      </p>
       {submitted && (
         <p className="lab-report-done" role="status">
           Report submitted. Nice work.
@@ -90,6 +92,7 @@ export function LabReportForm() {
           type="text"
           autoComplete="name"
           required
+          placeholder="Your name"
           toolparamdescription="The student's name for the report header."
         />
       </label>
@@ -98,6 +101,8 @@ export function LabReportForm() {
         <textarea
           name="what_i_built"
           required
+          placeholder="What did you build today?"
+          rows={2}
           toolparamdescription="A short description of the circuit the student built in this lesson."
         />
       </label>
@@ -106,6 +111,8 @@ export function LabReportForm() {
         <textarea
           name="observed_vs_expected"
           required
+          placeholder="What did you expect vs what happened?"
+          rows={2}
           toolparamdescription="What the measurements showed versus what the student expected to happen."
         />
       </label>

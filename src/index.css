@@ -85,6 +85,61 @@ h3 {
 }
 
 /* ==========================================================================
+   Scrollbars: quiet instrument chrome, never a native OS slab. Thumb is a
+   6px rounded line in --line-strong (warms to --ink-soft on hover); the
+   track stays transparent so rails read as paper, not windows. Firefox gets
+   the thin/scrollbar-color pair; the 10px WebKit track shows a 6px thumb
+   via the 2px transparent clip border. DESIGN.md 4.
+   ========================================================================== */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--ink-soft);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Inner panels scroll less often, so they get a slimmer 8px thumb. */
+.action-log ul,
+.approval-layer {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+.action-log ul::-webkit-scrollbar,
+.approval-layer::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.action-log ul::-webkit-scrollbar-thumb,
+.approval-layer::-webkit-scrollbar-thumb {
+  border-width: 1px;
+}
+
+/* ==========================================================================
    App frame and layout (DESIGN.md 5)
    ========================================================================== */
 
@@ -179,7 +234,9 @@ h3 {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  /* 8px: the compact end of the DESIGN.md 4/8/12 scale, so Lessons + Parts
+     fit one screen at a 900px-tall viewport without scrolling. */
+  gap: 8px;
   padding: 2px;
   animation: rise-in 240ms ease-out both;
 }
@@ -346,15 +403,18 @@ h3 {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
+/* Rail rows are compact (36px) so five lessons plus the parts bin fit a
+   900px-tall viewport on one screen; hover/active affordances carry the
+   44px+ hit comfort instead of raw row height. */
 .lesson-tab {
   display: flex;
   align-items: center;
   gap: 10px;
   width: 100%;
-  min-height: 40px;
+  min-height: 36px;
   text-align: left;
   font: 400 var(--text-sm) / 1.35 var(--font-sans);
   color: var(--ink-soft);
@@ -362,7 +422,7 @@ h3 {
   border: none;
   border-left: 2px solid transparent;
   border-radius: 0 6px 6px 0;
-  padding: 6px 10px;
+  padding: 5px 10px;
   cursor: pointer;
   transition:
     background-color 120ms ease,
@@ -411,12 +471,12 @@ h3 {
 .lesson-goal-title {
   font-size: var(--text-md);
   font-weight: 700;
-  margin: 4px 0 4px;
+  margin: 2px 0 4px;
   color: var(--ink);
 }
 
 .lesson-goal {
-  margin: 0 0 12px;
+  margin: 0 0 10px;
   line-height: 150%;
   color: var(--ink-soft);
 }
@@ -424,9 +484,9 @@ h3 {
 /* Rubber-stamp goal-complete badge (DESIGN.md 4). */
 .predicate-status {
   border-radius: 6px;
-  padding: 8px 10px;
+  padding: 7px 9px;
   font-size: var(--text-xs);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   line-height: 1.45;
 }
 
@@ -473,19 +533,31 @@ h3 {
    Palette (parts bin)
    ========================================================================== */
 
+/* Two-up parts bin: eight parts in four rows keeps Lessons 01-05 + Parts on
+   one screen at a 900px-tall viewport (rail fit pass). */
+.palette {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.palette .panel-title {
+  grid-column: 1 / -1;
+}
+
 .palette-btn {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
-  min-height: 40px;
+  min-height: 36px;
   font: 400 var(--text-sm) / 1 var(--font-sans);
   color: var(--ink);
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 6px;
-  padding: 8px 10px;
-  margin-bottom: 6px;
+  padding: 6px 8px;
+  margin-bottom: 0;
   cursor: pointer;
   transition:
     border-color 120ms ease,
@@ -1261,7 +1333,17 @@ svg .led-rays line {
 .lab-report {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+}
+
+/* Discoverability helper: the form is typeable AND agent-fillable. Public
+   Sans italic in --ink-soft, one line, under the engraved title. */
+.lab-report-helper {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--ink-soft);
 }
 
 .lab-report label {
@@ -1275,15 +1357,36 @@ svg .led-rays line {
   color: var(--ink-soft);
 }
 
+/* Paper form lines: mono ink for typed values, printed-sans italic
+   placeholders, a hover that lifts the line so the field plainly reads as
+   fillable (DESIGN.md 4 inputs + the discoverability pass). */
 .lab-report input,
 .lab-report textarea {
-  font: 400 var(--text-sm) / 1.45 var(--font-sans);
+  font: 400 var(--text-sm) / 1.45 var(--font-mono);
+  font-variant-numeric: tabular-nums;
   color: var(--ink);
-  background: var(--paper);
+  background: var(--surface);
   border: 1px solid var(--line-strong);
   border-radius: 6px;
-  padding: 8px;
+  padding: 9px 10px;
   resize: vertical;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease;
+}
+
+.lab-report input:hover,
+.lab-report textarea:hover {
+  border-color: var(--ink-soft);
+  background: #fff;
+}
+
+.lab-report input::placeholder,
+.lab-report textarea::placeholder {
+  color: var(--ink-faint);
+  font-family: var(--font-sans);
+  font-style: italic;
+  opacity: 1;
 }
 
 .lab-report input:focus,
@@ -1355,7 +1458,7 @@ svg .led-rays line {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .prompt-btn {
@@ -1364,14 +1467,14 @@ svg .led-rays line {
   justify-content: space-between;
   gap: 8px;
   width: 100%;
-  min-height: 36px;
+  min-height: 32px;
   font: 400 var(--text-sm) / 1.4 var(--font-mono);
   text-align: left;
   color: var(--ink);
   background: var(--paper);
   border: 1px solid var(--line);
   border-radius: 6px;
-  padding: 7px 9px;
+  padding: 5px 8px;
   cursor: pointer;
   transition:
     border-color 120ms ease,
