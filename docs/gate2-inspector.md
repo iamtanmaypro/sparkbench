@@ -3,7 +3,7 @@
 The Inspector runs a Gemini-Flash-class model against the page's registered
 tools, which is exactly the class of model we must satisfy. Run everything on
 **two profiles**: the flag profile proves the app works under the testing flag;
-the origin-trial profile proves the shipped `sparkbench.pages.dev` enables
+the origin-trial profile proves the shipped `https://iamtanmaypro.github.io/sparkbench/` enables
 WebMCP for real visitors with no flags at all. The three probe prompts below
 are the tool-description iteration targets (they are also the three prompts on
 the app's own hint panel).
@@ -15,7 +15,7 @@ the app's own hint panel).
 1. Chrome 153 or newer (`chrome://settings/help`). Use a **clean profile** with no other extensions.
 2. `chrome://flags/#enable-webmcp-testing` > Enabled > Relaunch.
 3. Install the **Model Context Tool Inspector** extension, open it from the extensions menu.
-4. Open `https://sparkbench.pages.dev`.
+4. Open `https://iamtanmaypro.github.io/sparkbench/`.
 5. DevTools console: `document.modelContext` should be an object, not `undefined`. (If only `navigator.modelContext` exists, note it: we register against `document` first, `navigator` as fallback, so tools still register, but the record matters.)
 
 **Dynamic toolset check (do this before any probe):** with the app on Lesson 1,
@@ -34,7 +34,7 @@ Inspector's tool list does not follow the lesson, record it: that is the
 ## Setup B: origin-trial profile (second clean profile, no flag)
 
 1. Same Chrome, second clean profile, **no flags touched**.
-2. Open `https://sparkbench.pages.dev`. The page ships the origin-trial token in its `<meta http-equiv="origin-trial">` tag, so WebMCP must be active for a plain visitor.
+2. Open `https://iamtanmaypro.github.io/sparkbench/`. The page ships the origin-trial token in its `<meta http-equiv="origin-trial">` tag once enrollment completes (token pending as of the GitHub Pages deploy), so WebMCP must be active for a plain visitor. Until then this profile is expected to show no tools; run the flag profile instead.
 3. DevTools console: `document.modelContext` should again be an object. If it is `undefined` here: the token is expired, spent, or issued for a different origin. Check `chrome://web-internals` (origin trial section) and the origin trials console, fix, redeploy, and re-check. This failure mode is precisely what this profile exists to catch.
 4. Repeat the dynamic toolset check from Setup A.
 
@@ -137,7 +137,7 @@ For every mispick, hallucinated argument, or confused answer, one row:
 Then:
 
 1. Edit the description (or param description) in `src/webmcp/register.ts`, `approvals.ts`, or `diagnosis.ts`. Budgets are law: ≤ 500 chars per description, ≤ 150 per param description, names ≤ 30.
-2. `npx vitest run src/webmcp/budgets.test.ts` to keep the lint green, `npm run build`, redeploy to Cloudflare Pages.
+2. `npx vitest run src/webmcp/budgets.test.ts` to keep the lint green, `npm run build:pages`, and push so GitHub Pages redeploys.
 3. Re-run only the failed probes on the flag profile.
 4. Log the final probe results in the table below. One round only; if a probe still fails after the round, record it and move on (it feeds the README's prompts-to-try honesty).
 

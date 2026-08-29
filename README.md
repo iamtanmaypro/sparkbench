@@ -6,14 +6,16 @@ Built during the OpenAI WebMCP Challenge, Aug 26 to Sep 3, 2026. All work in thi
 
 ## Live app
 
-**[PENDING DEPLOY]** https://sparkbench.pages.dev
+https://iamtanmaypro.github.io/sparkbench/
 
-Tanmay: deploy via the Cloudflare Pages steps in [docs/gate1-checklist.md](docs/gate1-checklist.md), then delete this marker. If the `sparkbench` project name is taken on Cloudflare, pick another project name and update the URL here, on Devpost, and in the video end card. Before submitting, confirm the URL serves this app and not something else:
+The app is statically hosted on GitHub Pages (project site, served from the `/sparkbench/` subpath). Before submitting, confirm the URL serves this app and not something else:
 
 ```sh
-curl -s https://sparkbench.pages.dev/ | grep -o "<title>[^<]*</title>"
+curl -s https://iamtanmaypro.github.io/sparkbench/ | grep -o "<title>[^<]*</title>"
 # expected: <title>Sparkbench - build circuits with your AI agent</title>
 ```
+
+To rebuild the GitHub Pages bundle locally, run `npm run build:pages` (it sets the `/sparkbench/` base path; plain `npm run build` keeps the root base for other hosts, such as a later Cloudflare Pages move, which is documented as an optional alternative in [docs/gate1-checklist.md](docs/gate1-checklist.md)).
 
 ## What it is
 
@@ -33,7 +35,7 @@ Before anything: open the live URL in a normal tab, click **Reset bench** in the
 1. Start a new ChatGPT conversation and paste the deeplink (swap in the live URL if it changed):
 
    ```
-   https://chatgpt.com/codex/deeplink?url=https%3A%2F%2Fsparkbench.pages.dev
+   https://chatgpt.com/codex/deeplink?url=https%3A%2F%2Fiamtanmaypro.github.io%2Fsparkbench%2F
    ```
 
    If the deeplink does not open the page, paste the plain URL into the conversation and ask ChatGPT to open it in its browser. Either path counts.
@@ -49,7 +51,7 @@ The full script, including the on-camera approval beat, truncation and abort edg
 1. On a clean Chrome profile, enable `chrome://flags/#enable-webmcp-testing`, relaunch, and open the live URL. In DevTools, `document.modelContext` should be an object, not `undefined`.
 2. Install the **Model Context Tool Inspector** extension and open it for the page.
 3. Dynamic toolset check: on Lesson 1 the Inspector lists `ping_workbench`, the 5 reads, `open_lesson`, `focus_component`, and the writes `place_component`, `connect`, `set_property`, `get_proposal_status`, and NOT `remove_component`, `add_note`, or `run_diagnosis`. Switch to Lesson 2: `remove_component` and `add_note` join. Lesson 4: `run_diagnosis` appears. Back to Lesson 1: it disappears.
-4. Second clean profile, no flags touched: open the same URL. The page ships a Chrome origin-trial token, so WebMCP must work for a plain visitor. If `document.modelContext` is `undefined` here, the token is expired or mis-issued; check `chrome://web-internals` and the origin trials console.
+4. Second clean profile, no flags touched: open the same URL. I am still pending on the Chrome origin-trial token for `https://iamtanmaypro.github.io` (enrollment is a Tanmay step in [docs/gate1-checklist.md](docs/gate1-checklist.md)); once the token ships in the page, WebMCP must work for a plain visitor with no flags. If `document.modelContext` is `undefined` there after the token is live, the token is expired or mis-issued; check `chrome://web-internals` and the origin trials console. The ChatGPT in-app browser route and the `chrome://flags/#enable-webmcp-testing` flag path both work today without any token.
 
 The three probe prompts with pass criteria, plus raw-JSON truncation probes: [docs/gate2-inspector.md](docs/gate2-inspector.md).
 

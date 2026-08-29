@@ -12,13 +12,13 @@ agent chip flipping states. That moment is the product.
 
 ## Before you start (5 minutes)
 
-- [ ] `https://sparkbench.pages.dev` loads in a normal tab and is the latest deploy (hard refresh: Cmd+Shift+R).
+- [ ] `https://iamtanmaypro.github.io/sparkbench/` loads in a normal tab and is the latest deploy (hard refresh: Cmd+Shift+R).
 - [ ] Fresh bench state: open the app, click **Reset bench** in the Lessons panel. If you want a truly clean slate: DevTools > Application > Local Storage > delete `sparkbench.v1` > reload. The app starts on Lesson 1 (Ohm's Law).
 - [ ] Recording setup (only if this pass is the video take): 1080p, browser window about 1280x800 so canvas + log rail + approval layer all fit, cursor visible in the recorder, other tabs closed, no zoom.
 - [ ] New ChatGPT conversation, then paste the deeplink:
 
   ```
-  https://chatgpt.com/codex/deeplink?url=https%3A%2F%2Fsparkbench.pages.dev
+  https://chatgpt.com/codex/deeplink?url=https%3A%2F%2Fiamtanmaypro.github.io%2Fsparkbench%2F
   ```
 
   If ChatGPT does not open the page from the deeplink, paste the plain URL and ask it to open the page in its browser. (Either path counts; note which one worked, this is the single-sourced fact we keep spot-checking.)

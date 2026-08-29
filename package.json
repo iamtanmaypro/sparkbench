@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:pages": "VITE_BASE=/sparkbench/ vite build",
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run"

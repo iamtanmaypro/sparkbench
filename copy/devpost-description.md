@@ -37,7 +37,7 @@ I built it with a boring stack on purpose: Vite, TypeScript, React, React Flow f
 - Character budgets respected and enforced by a test (names 30 or fewer, descriptions 500 or fewer, parameter descriptions 150 or fewer, outputs 1.5K or fewer), with outputs that truncate honestly: a truncated flag plus totals, never a clipped string.
 - Both API surfaces: the 15 imperative tools plus a declarative Lab Report form with toolname and tooldescription and deliberately no toolautosubmit, which glows with :tool-form-active while the agent fills it, and only the human presses Submit.
 - An in-page approval flow with batch approval (approve the next N proposals after the first explicit yes), because requestUserInteraction is spec-draft, and structured needs_human escalation returns with context and a suggestion on faulted benches.
-- An origin-trial token shipped in the page, so a plain Chrome visitor gets WebMCP with no flags at all.
+- Origin-trial enrollment for the hosted origin (`https://iamtanmaypro.github.io`), pending as I write this; the token ships in a meta tag once issued. Meanwhile WebMCP is testable today two ways: ChatGPT's in-app browser needs nothing extra, and Chrome's `chrome://flags/#enable-webmcp-testing` flag enables it in any profile.
 
 The usefulness comes from a real audience of students and self-learners; the originality from a shared object that is a live physical simulation with ground truth, not a document; the execution from a 195-test suite that includes a lint for the budget law; and the quality of the human-agent experience is the product itself, not a feature bolted on. The WebMCP leverage is the full API surface, both registration surfaces included, that most entries will not touch, and the creativity and ambition show up in treating an agent as a lab partner with its own identity rather than a macro recorder.
 
@@ -47,11 +47,11 @@ The hard parts were writing tool descriptions a small inspector model picks corr
 
 ## 7. How to test it
 
-Live app: https://sparkbench.pages.dev (open it first, click Reset bench, and confirm the banner is absent). Repo: the tool registration lives in src/webmcp/register.ts and src/webmcp/approvals.ts.
+Live app: https://iamtanmaypro.github.io/sparkbench/ (open it first, click Reset bench, and confirm the banner is absent). The app is statically hosted on GitHub Pages. Repo: the tool registration lives in src/webmcp/register.ts and src/webmcp/approvals.ts.
 
 ChatGPT (primary runtime):
 
-1. In a new ChatGPT conversation, paste: https://chatgpt.com/codex/deeplink?url=https%3A%2F%2Fsparkbench.pages.dev
+1. In a new ChatGPT conversation, paste: https://chatgpt.com/codex/deeplink?url=https%3A%2F%2Fiamtanmaypro.github.io%2Fsparkbench%2F
    If the deeplink does not open the page, paste the plain URL and ask ChatGPT to open it in its browser.
 2. Type: "Open my electronics workbench and tell me what tools you can see there."
 3. Type: "Teach me series vs parallel. Switch me to lesson 2, explain the seeded circuit, then rebuild it so the two bulbs are in parallel and both glow bright. Propose each change to me and wait for my approval." Approve the cards (batch approve after the first).
@@ -62,7 +62,7 @@ Chrome 153+:
 
 1. On a clean profile, enable chrome://flags/#enable-webmcp-testing and relaunch.
 2. Open the live app; the tools register with no install. Use the Model Context Tool Inspector extension.
-3. On a second clean profile with no flags, open the same URL: the page ships the origin-trial token, so WebMCP works for a plain visitor.
+3. On a second clean profile with no flags, open the same URL: once the origin-trial token is live in the page (enrollment pending at submission time), WebMCP works for a plain visitor. Until then, the flag route above is the reliable Chrome path.
 
 Three prompts to try: "What is wrong with my circuit?" (open lesson 4 first), "Build me a voltage divider" (lesson 5), and "Why is the LED dark?" (lesson 4).
 

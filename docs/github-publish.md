@@ -32,7 +32,7 @@ Open the repo page and check the About box in the top right:
       text, then re-check).
 - [ ] Click the gear icon next to About and fill in:
   - [ ] Description: `A browser electronics lab where your AI agent is your lab partner (WebMCP)`
-  - [ ] Website: the live app URL (e.g. `https://sparkbench.pages.dev`)
+  - [ ] Website: `https://iamtanmaypro.github.io/sparkbench/` (the live app, statically hosted on GitHub Pages)
   - [ ] Topics: `webmcp`, `education`, `circuits`, `mcp`, `ai-agents`, `react`
 - [ ] Default branch is `main` and the latest commit is the final package
       commit.
