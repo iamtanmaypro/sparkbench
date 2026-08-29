@@ -20,7 +20,7 @@ To rebuild the GitHub Pages bundle locally, run `npm run build:pages` (it sets t
 ## What it is
 
 - A real DC simulation: modified nodal analysis (about 150 lines of TypeScript, Gaussian elimination, no physics engine), with batteries (including internal resistance), resistors, LEDs (forward drop and burnout), bulbs (brightness from power), switches, fuses, ammeters, and voltmeters. Faults are detected and named: short circuit, open circuit, LED burnout, blown fuse.
-- Fifteen WebMCP tools over one shared canvas, registered against `document.modelContext` (with a feature-detected `navigator.modelContext` fallback, since that path is deprecated): 5 reads, 2 navigation, 6 writes plus a proposal-status read, and a lesson-gated diagnosis tool.
+- Fifteen imperative WebMCP tools over one shared canvas, registered against `document.modelContext` (with a feature-detected `navigator.modelContext` fallback, since that path is deprecated): a health check, 5 reads, 2 navigation, 4 approval-gated writes, an auto-executing note tool, a proposal-status read, and a lesson-gated diagnosis tool.
 - A human in the loop by design: every write returns a proposal, an on-canvas card waits for the student's click, and `remove_component` carries an honest `destructiveHint`. Sticky notes the agent leaves are annotated `untrustedContentHint`.
 - Five lessons as plain JSON a teacher could edit: Ohm's Law, Series vs Parallel, Switches and Logic, Diagnose the Fault (ships pre-broken), Free Build. Toolsets follow the lesson via `provideContext`/`toolchange`.
 - Both registration surfaces: the 15 imperative tools plus a declarative Lab Report `<form toolname="submit_lab_report">` with no `toolautosubmit`, so the agent fills it and the human always presses Submit.
@@ -28,7 +28,7 @@ To rebuild the GitHub Pages bundle locally, run `npm run build:pages` (it sets t
 
 ## How to test with an agent (both runtimes)
 
-Before anything: open the live URL in a normal tab, click **Reset bench** in the Lessons panel, and confirm the page renders without the "Open in ChatGPT's browser" banner. A fresh bench state keeps every lesson at its seeded circuit.
+Before anything: open the live URL in a normal tab and click **Reset bench** in the Lessons panel, so every lesson starts from its seeded circuit. In a plain tab with no WebMCP you will see a dismissible agent-hint banner; that is expected, and the whole lab still works mouse-only. In ChatGPT's browser or a WebMCP-enabled Chrome profile the banner does not appear, which is the quick way to confirm the tools are live.
 
 ### Runtime A: ChatGPT's in-app browser
 
@@ -51,7 +51,7 @@ The full script, including the on-camera approval beat, truncation and abort edg
 1. On a clean Chrome profile, enable `chrome://flags/#enable-webmcp-testing`, relaunch, and open the live URL. In DevTools, `document.modelContext` should be an object, not `undefined`.
 2. Install the **Model Context Tool Inspector** extension and open it for the page.
 3. Dynamic toolset check: on Lesson 1 the Inspector lists `ping_workbench`, the 5 reads, `open_lesson`, `focus_component`, and the writes `place_component`, `connect`, `set_property`, `get_proposal_status`, and NOT `remove_component`, `add_note`, or `run_diagnosis`. Switch to Lesson 2: `remove_component` and `add_note` join. Lesson 4: `run_diagnosis` appears. Back to Lesson 1: it disappears.
-4. Second clean profile, no flags touched: open the same URL. I am still pending on the Chrome origin-trial token for `https://iamtanmaypro.github.io` (enrollment is a Tanmay step in [docs/gate1-checklist.md](docs/gate1-checklist.md)); once the token ships in the page, WebMCP must work for a plain visitor with no flags. If `document.modelContext` is `undefined` there after the token is live, the token is expired or mis-issued; check `chrome://web-internals` and the origin trials console. The ChatGPT in-app browser route and the `chrome://flags/#enable-webmcp-testing` flag path both work today without any token.
+4. Second clean profile, no flags touched: open the same URL. The Chrome origin-trial token for `https://iamtanmaypro.github.io` is still pending (enrollment is a Tanmay step in [docs/gate1-checklist.md](docs/gate1-checklist.md)); once the token ships in the page, WebMCP must work for a plain visitor with no flags. If `document.modelContext` is `undefined` there after the token is live, the token is expired or mis-issued; check `chrome://web-internals` and the origin trials console. The ChatGPT in-app browser route and the `chrome://flags/#enable-webmcp-testing` flag path both work today without any token.
 
 The three probe prompts with pass criteria, plus raw-JSON truncation probes: [docs/gate2-inspector.md](docs/gate2-inspector.md).
 
@@ -140,7 +140,7 @@ The Lab Report panel is a `<form toolname="submit_lab_report" tooldescription=".
 npm install
 npm run dev       # local dev server
 npm run build     # tsc -b + vite production bundle in dist/
-npx vitest run    # 195 unit tests across 21 files, including the tool-budget lint
+npx vitest run    # 196 unit tests across 21 files, including the tool-budget lint
 ```
 
 The registration code a reviewer wants is in `src/webmcp/register.ts` and `src/webmcp/approvals.ts`.

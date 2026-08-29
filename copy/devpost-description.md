@@ -21,7 +21,7 @@ Sparkbench is a browser electronics lab (batteries, resistors, LEDs, bulbs, swit
 
 ## 3. Why this use case fits WebMCP
 
-A circuit simulation drawn on an HTML canvas is exactly what DOM scraping cannot read: there is no markup listing the components, and the ground truth is numbers computed by a solver. Tools are the only structured access, which makes this a natural fit for the callable web: the page hands the agent structured tools instead of screen automation. Five flat reads ground the agent (workbench summary, live measurements, lesson state, notes, answer check), two navigation tools direct attention, and the write tools are where the human in the loop is native: every mutating call returns a proposal and waits for a tap on an approval card rendered by the page itself. Notes the agent leaves are annotated untrustedContentHint, so claims in student-authored sticky notes are treated as unverified. The whole agent experience, chip, glow, log, and badges, makes the machine a visible lab partner instead of a ghost. And reliability and precision come from physics: every claim the agent makes is checkable against the app's own meters, and a faulted circuit escalates back as needs_human with the exact component to look at.
+A circuit simulation drawn on an HTML canvas is exactly what DOM scraping cannot read: there is no markup listing the components, and the ground truth is numbers computed by a solver. Tools are the only structured access, which makes this a natural fit for the callable web: the page hands the agent structured tools instead of screen automation. Five flat reads ground the agent (workbench summary, live measurements, lesson state, notes, answer check), two navigation tools direct attention, and the write tools are where the human in the loop is native: every mutating call returns a proposal and waits for a tap on an approval card rendered by the page itself. Sticky notes are free text written by whoever pinned them, so the read_notes tool is annotated untrustedContentHint and claims in notes stay unverified until checked against the meters. The whole agent experience, chip, glow, log, and badges, makes the machine a visible lab partner instead of a ghost. And reliability and precision come from physics: every claim the agent makes is checkable against the app's own meters, and a faulted circuit escalates back as needs_human with the exact component to look at.
 
 ## 4. What people and agents accomplish together that wasn't feasible before
 
@@ -39,7 +39,7 @@ I built it with a boring stack on purpose: Vite, TypeScript, React, React Flow f
 - An in-page approval flow with batch approval (approve the next N proposals after the first explicit yes), because requestUserInteraction is spec-draft, and structured needs_human escalation returns with context and a suggestion on faulted benches.
 - Origin-trial enrollment for the hosted origin (`https://iamtanmaypro.github.io`), pending as I write this; the token ships in a meta tag once issued. Meanwhile WebMCP is testable today two ways: ChatGPT's in-app browser needs nothing extra, and Chrome's `chrome://flags/#enable-webmcp-testing` flag enables it in any profile.
 
-The usefulness comes from a real audience of students and self-learners; the originality from a shared object that is a live physical simulation with ground truth, not a document; the execution from a 195-test suite that includes a lint for the budget law; and the quality of the human-agent experience is the product itself, not a feature bolted on. The WebMCP leverage is the full API surface, both registration surfaces included, that most entries will not touch, and the creativity and ambition show up in treating an agent as a lab partner with its own identity rather than a macro recorder.
+The usefulness comes from a real audience of students and self-learners; the originality from a shared object that is a live physical simulation with ground truth, not a document; the execution from a 196-test suite that includes a lint for the budget law; and the quality of the human-agent experience is the product itself, not a feature bolted on. The WebMCP leverage is the full API surface, both registration surfaces included, that most entries will not touch, and the creativity and ambition show up in treating an agent as a lab partner with its own identity rather than a macro recorder.
 
 ## 6. Challenges / What's next
 
@@ -47,7 +47,7 @@ The hard parts were writing tool descriptions a small inspector model picks corr
 
 ## 7. How to test it
 
-Live app: https://iamtanmaypro.github.io/sparkbench/ (open it first, click Reset bench, and confirm the banner is absent). The app is statically hosted on GitHub Pages. Repo: the tool registration lives in src/webmcp/register.ts and src/webmcp/approvals.ts.
+Live app: https://iamtanmaypro.github.io/sparkbench/ (open it first and click Reset bench; in a plain tab you will see a dismissible agent-hint banner, which is expected, and in a WebMCP runtime it disappears). The app is statically hosted on GitHub Pages. Repo: the tool registration lives in src/webmcp/register.ts and src/webmcp/approvals.ts.
 
 ChatGPT (primary runtime):
 

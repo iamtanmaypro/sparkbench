@@ -81,8 +81,8 @@ switch showing the toolset change; the approval card again; then a brief code
 flash of the registration lines in src/webmcp/register.ts.]
 
 > The same app in Chrome with the Model Context Tool Inspector. The toolset
-> follows the lesson: diagnosis tools only exist once the bench is broken. My
-> agent sees exactly what it's allowed to do. Under the hood, this is the
+> follows the lesson: the diagnosis tool only exists once I reach the
+> fault-hunting lesson. My agent sees exactly what it's allowed to do. Under the hood, this is the
 > whole registration: fifteen tools against document.modelContext, the current
 > API, with budgets enforced by tests. And a declarative form the agent fills,
 > that only I can submit.
