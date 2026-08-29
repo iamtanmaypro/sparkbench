@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import { act } from 'react'
 import { render, screen, fireEvent, within } from '@testing-library/react'
 import { Workbench } from './Workbench'
 import { useBenchStore } from '../store/useBenchStore'
@@ -23,6 +24,8 @@ function fresh() {
     completedLessonIds: new Set<string>(),
     predicate: { passed: false, failures: [] },
     hintsShown: 0,
+    focusRequest: null,
+    agentTouch: null,
   })
 }
 
@@ -98,5 +101,68 @@ describe('Workbench (store-driven canvas interactions)', () => {
     expect(useBenchStore.getState().currentLessonId).toBe('diagnose-fault')
     // Lesson 4's pre-broken circuit is on the bench.
     expect(useBenchStore.getState().components.some((c) => c.burnedOut)).toBe(true)
+  })
+})
+
+describe('Agent visibility on the canvas (A15)', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    fresh()
+  })
+
+  it('agent-placed components carry the glow class and the "placed by Agent" badge', () => {
+    useBenchStore.getState().addComponent('resistor', { x: 0, y: 0 }, 'agent')
+    render(<Workbench />)
+    const node = document.querySelector('.comp-node.from-agent')
+    expect(node).toBeTruthy()
+    expect(node!.querySelector('.agent-badge')!.textContent).toBe('placed by Agent')
+  })
+
+  it('human-placed components get neither glow nor badge', () => {
+    useBenchStore.getState().addComponent('resistor', { x: 0, y: 0 }, 'human')
+    render(<Workbench />)
+    expect(document.querySelector('.comp-node.from-agent')).toBeNull()
+    expect(document.querySelector('.agent-badge')).toBeNull()
+  })
+
+  it('approving a proposal drops the ghost cursor on the touched part', () => {
+    const s = useBenchStore.getState()
+    const p = s.propose({ kind: 'place_component', type: 'battery' }, 'place battery on the bench')
+    render(<Workbench />)
+    expect(document.querySelector('.ghost-cursor')).toBeNull()
+    fireEvent.click(screen.getByLabelText('Approve: place battery on the bench'))
+    const cursor = document.querySelector('.ghost-cursor')
+    expect(cursor).toBeTruthy()
+    const id = useBenchStore.getState().components[0]!.id
+    expect(cursor!.getAttribute('aria-label')).toBe(`Agent is working on ${id}`)
+    expect(useBenchStore.getState().proposals.find((x) => x.id === p.id)!.status).toBe('approved')
+  })
+
+  it('focus_component (requestFocus) pulses the referenced part', () => {
+    const id = useBenchStore.getState().addComponent('resistor', { x: 0, y: 0 })
+    render(<Workbench />)
+    expect(document.querySelector('.focus-pulse')).toBeNull()
+    // Store update outside an event handler: wrap in act so React flushes
+    // the node re-render before we query the DOM.
+    act(() => {
+      useBenchStore.getState().requestFocus(id)
+    })
+    const node = document.querySelector('.comp-node.focus-pulse')
+    expect(node).toBeTruthy()
+    expect(node!.textContent).toContain(id)
+  })
+
+  it('an empty bench shows the example-prompts empty state on the canvas', () => {
+    render(<Workbench />)
+    expect(
+      screen.getByRole('region', { name: 'Getting started: prompts to try with your agent' }),
+    ).toBeTruthy()
+    expect(screen.getAllByRole('button', { name: /^Copy prompt:/ })).toHaveLength(3)
+  })
+
+  it('a populated bench hides the canvas empty state', () => {
+    useBenchStore.getState().addComponent('battery', { x: 0, y: 0 })
+    render(<Workbench />)
+    expect(screen.queryByRole('region', { name: 'Getting started: prompts to try with your agent' })).toBeNull()
   })
 })

@@ -28,6 +28,7 @@ import { LessonPanel } from './LessonPanel'
 import { Inspector } from './Inspector'
 import { NotesLayer } from './NotesLayer'
 import { ApprovalCard } from './ApprovalCard'
+import { HintPanel } from './HintPanel'
 
 const nodeTypes = { component: ComponentNode }
 const edgeTypes = { wire: WireEdge }
@@ -188,12 +189,14 @@ function WorkbenchInner() {
 
   return (
     <div className="workbench">
-      <aside className="side-left">
+      <aside className="side-left" aria-label="Lessons and parts">
         <LessonPanel />
         <Palette allowed={lesson?.allowedComponents ?? []} />
       </aside>
 
-      <main className="canvas-wrap">
+      {/* A plain region, not a second <main>: the app shell owns the page's
+          single main landmark (axe: landmark-no-duplicate-main). */}
+      <div className="canvas-wrap" role="region" aria-label="Circuit workbench canvas">
         <ReactFlow
           nodes={rfNodes}
           edges={renderedEdges}
@@ -231,17 +234,30 @@ function WorkbenchInner() {
           minZoom={0.3}
           maxZoom={2}
           proOptions={{ hideAttribution: true }}
-          aria-label="Circuit workbench canvas"
+          // No aria-label here: it would land on a plain wrapper div where
+          // aria-label is prohibited. The named region above carries the
+          // canvas's accessible name.
         >
           <Background gap={18} color="#1c232b" className="bench-bg" />
-          <Controls showInteractive={false} aria-label="Canvas zoom controls" />
+          {/* No aria-label on Controls: RF renders a plain wrapper div, where
+              aria-label is prohibited (axe: aria-prohibited-attr). The zoom
+              buttons inside carry their own labels. */}
+          <Controls showInteractive={false} />
           <MiniMap pannable zoomable className="minimap" aria-label="Canvas minimap" />
         </ReactFlow>
         <NotesLayer />
         <ApprovalCard />
-      </main>
+        {/* Empty state: an empty bench (free build, fresh reset) shows the
+            example prompts right on the canvas. The overlay ignores pointer
+            events so panning/zooming around it still works. */}
+        {components.length === 0 && (
+          <div className="canvas-empty">
+            <HintPanel variant="canvas" />
+          </div>
+        )}
+      </div>
 
-      <aside className="side-right">
+      <aside className="side-right" aria-label="Component inspector">
         <Inspector />
       </aside>
     </div>

@@ -154,6 +154,9 @@ export const ComponentNode = memo(function ComponentNode({ id, data }: NodeProps
   const isSelected = selectedId === id
   // focus_component targets this part: pulse so "look here" reads at a glance.
   const isFocused = focusId === id
+  // Agent's most recent touch on THIS part: ghost cursor with a one-shot fade
+  // (keyed by seq so a repeat touch on the same part replays the animation).
+  const agentTouch = useBenchStore((s) => (s.agentTouch?.id === id ? s.agentTouch : null))
 
   const faulty = !!(d.burnedOut || d.blown)
 
@@ -201,6 +204,22 @@ export const ComponentNode = memo(function ComponentNode({ id, data }: NodeProps
         </button>
       ) : (
         <div className="comp-body">{body}</div>
+      )}
+
+      {/* Ghost cursor: the agent is operating on (or pointing at) this part.
+          Fades out on its own; keying by seq replays it on repeat touches. */}
+      {agentTouch && (
+        <svg
+          key={agentTouch.seq}
+          className="ghost-cursor"
+          viewBox="0 0 24 24"
+          width={20}
+          height={20}
+          role="img"
+          aria-label={`Agent is working on ${id}`}
+        >
+          <path d="M5 2 L5 19 L9.6 14.6 L12.8 21 L15.5 19.7 L12.4 13.6 L19 13 Z" />
+        </svg>
       )}
 
       <div className="node-meta">

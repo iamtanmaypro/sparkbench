@@ -137,6 +137,13 @@ export interface BenchState {
    * canvas pan/zoom. Ephemeral UI state; never persisted.
    */
   focusRequest: { id: string; seq: number } | null
+  /**
+   * The component the agent most recently touched or is pointing at (approved
+   * proposal applied, focus_component, run_diagnosis). Drives the ghost-cursor
+   * overlay on the canvas: the seq keys the element so a repeat touch on the
+   * same part replays the fade animation. Ephemeral; never persisted.
+   */
+  agentTouch: { id: string; seq: number } | null
 
   // --- actions (the ONLY mutation paths) -------------------------------------
   addComponent: (type: ComponentType, pos?: { x: number; y: number }, origin?: Origin) => string
@@ -261,6 +268,7 @@ export const useBenchStore = create<BenchState>((set, get) => ({
   agentActive: false,
   proposals: [],
   focusRequest: null,
+  agentTouch: null,
 
   addComponent: (type, pos, origin = 'human') => {
     // makeId's module counter is blind to lesson-seeded ids (bat1, r1...), so
@@ -356,6 +364,8 @@ export const useBenchStore = create<BenchState>((set, get) => ({
       selectedId: null,
       origins: {},
       hintsShown: 0,
+      focusRequest: null,
+      agentTouch: null,
       proposals: s.proposals.filter((p) => p.status !== 'pending_approval'),
     }))
     afterMutation(set, get, `Opened ${lesson.title}`, 'human')
@@ -378,7 +388,7 @@ export const useBenchStore = create<BenchState>((set, get) => ({
   resetLesson: () => {
     const lesson = getLesson(get().currentLessonId) ?? firstLesson
     const seeded = seedNetlist(lesson)
-    set({ ...seeded, selectedId: null, origins: {}, hintsShown: 0 })
+    set({ ...seeded, selectedId: null, origins: {}, hintsShown: 0, focusRequest: null, agentTouch: null })
     afterMutation(set, get, `Reset ${lesson.title}`, 'human')
   },
 
@@ -404,6 +414,7 @@ export const useBenchStore = create<BenchState>((set, get) => ({
     set((s) => ({
       focusRequest: { id, seq: (s.focusRequest?.seq ?? 0) + 1 },
       selectedId: id,
+      agentTouch: { id, seq: (s.agentTouch?.seq ?? 0) + 1 },
     }))
     get().logEvent('Agent', `asked you to look at ${id}`)
   },
@@ -430,7 +441,7 @@ export const useBenchStore = create<BenchState>((set, get) => ({
       ),
     }))
     get().logEvent('You', `approved: ${p.summary}`)
-    applyProposal(get, p.action)
+    applyProposal(set, get, p.action)
     return true
   },
 
@@ -514,7 +525,11 @@ export function getProposal(id: string): Proposal | undefined {
  * An approved proposal finally mutates the bench, through the SAME actions a
  * human click uses, attributed to the agent. No parallel mutation path exists.
  */
-function applyProposal(get: () => BenchState, action: ProposalAction): void {
+function applyProposal(
+  set: (partial: Partial<BenchState>) => void,
+  get: () => BenchState,
+  action: ProposalAction,
+): void {
   const s = get()
   switch (action.kind) {
     case 'place_component': {
@@ -526,10 +541,13 @@ function applyProposal(get: () => BenchState, action: ProposalAction): void {
       // place_component's optional starting value lands through the same
       // set_property path a later tuning proposal would take.
       if (action.value !== undefined && action.value > 0) s.setProperty(id, action.value, 'agent')
+      markAgentTouch(set, get, id)
       break
     }
     case 'connect':
       s.connectTerminals(action.from, action.to, 'agent')
+      // The ghost cursor anchors on the source end of the new wire.
+      markAgentTouch(set, get, action.from.slice(0, action.from.lastIndexOf(':')))
       break
     case 'set_property': {
       if (action.property === 'closed') {
@@ -539,12 +557,29 @@ function applyProposal(get: () => BenchState, action: ProposalAction): void {
       } else {
         s.setProperty(action.id, Number(action.value), 'agent')
       }
+      markAgentTouch(set, get, action.id)
       break
     }
     case 'remove_component':
+      // No cursor anchor: the part (and its node) is gone from the canvas.
       s.removeComponent(action.id, 'agent')
       break
   }
+}
+
+/**
+ * Point the ghost cursor at the component the agent just touched. Skips ids
+ * that are not on the bench (e.g. a removed part) so the overlay never
+ * dangles on nothing.
+ */
+function markAgentTouch(
+  set: (partial: Partial<BenchState>) => void,
+  get: () => BenchState,
+  id: string | undefined,
+): void {
+  if (!id || !get().components.some((c) => c.id === id)) return
+  const seq = (get().agentTouch?.seq ?? 0) + 1
+  set({ agentTouch: { id, seq } })
 }
 
 export { lessonIndex, lessons }

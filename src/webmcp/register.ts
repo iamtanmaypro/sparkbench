@@ -55,7 +55,9 @@ export const pingTool: ToolDefinition = {
     properties: {},
     additionalProperties: false,
   },
-  execute() {
+  execute(_args: Record<string, unknown>, context: ModelContextToolCallOptions) {
+    // A16: every execute honors the host AbortSignal, ping included.
+    if (aborted(context)) return ABORTED
     return {
       app: 'Sparkbench',
       status: 'ok',

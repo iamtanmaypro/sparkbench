@@ -434,6 +434,10 @@ h1 {
   border-color: var(--agent);
 }
 
+.agent-chip.waiting {
+  border-style: dashed;
+}
+
 .agent-dot {
   width: 8px;
   height: 8px;
@@ -449,6 +453,10 @@ h1 {
 .agent-status {
   color: var(--agent);
   font-size: 12px;
+}
+
+.agent-status.waiting {
+  color: var(--accent);
 }
 
 /* ---------- Canvas nodes ---------- */
@@ -486,6 +494,49 @@ h1 {
   outline-offset: 3px;
   border-radius: 6px;
   animation: focus-pulse 0.8s ease-in-out 3;
+}
+
+/* Ghost cursor: marks the part the agent is operating on or pointing at.
+   Plays once per touch (the element is keyed by the touch seq) and fades
+   out, so the canvas never accumulates permanent cursors. */
+.ghost-cursor {
+  position: absolute;
+  top: -18px;
+  right: -16px;
+  z-index: 20;
+  fill: var(--agent);
+  filter: drop-shadow(0 0 5px rgba(122, 162, 247, 0.9));
+  pointer-events: none;
+  animation: ghost-cursor-fade 2.4s ease-out forwards;
+}
+
+@keyframes ghost-cursor-fade {
+  0% {
+    opacity: 0;
+    transform: translate(4px, 4px);
+  }
+  12% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(3px, 3px);
+  }
+}
+
+/* Respect reduced motion: show the cursor, skip the movement/fade dance. */
+@media (prefers-reduced-motion: reduce) {
+  .ghost-cursor {
+    animation: none;
+    opacity: 0.85;
+  }
+  .comp-node.focus-pulse .comp-body {
+    animation: none;
+  }
 }
 
 @keyframes focus-pulse {
@@ -898,4 +949,104 @@ svg .led-rays line {
 .lab-report.tool-form-live {
   border-color: var(--agent);
   box-shadow: 0 0 0 1px var(--agent), 0 0 16px rgba(122, 162, 247, 0.4);
+}
+
+/* ---------- Hint panel (example prompts) ---------- */
+.hint-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 13px;
+}
+
+.hint-panel .panel-title {
+  margin-bottom: 6px;
+}
+
+.prompt-list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.prompt-btn {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  font: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 9px;
+  cursor: pointer;
+}
+
+.prompt-btn:hover {
+  border-color: var(--agent);
+  color: var(--text-h);
+}
+
+.prompt-text::before {
+  content: '\201C';
+  opacity: 0.6;
+}
+
+.prompt-text::after {
+  content: '\201D';
+  opacity: 0.6;
+}
+
+.prompt-copy {
+  flex-shrink: 0;
+  font-size: 10.5px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--agent);
+  opacity: 0.8;
+}
+
+/* Canvas empty-state overlay: centered invitation while the bench is bare.
+   The wrapper passes pointer events through so panning still works around
+   the panel; only the panel itself is interactive. */
+.canvas-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.hint-panel-canvas {
+  pointer-events: auto;
+  width: 320px;
+  max-width: calc(100% - 48px);
+  background: rgba(21, 27, 34, 0.92);
+  border-color: var(--agent);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+}
+
+/* ---------- Keyboard operability (A16) ---------- */
+/* One visible focus ring for every interactive control, keyboard-driven.
+   :focus-visible skips mouse clicks; inputs keep their accent-border focus
+   plus this ring when tabbed to. */
+:where(button, input, textarea, select, a, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.palette-btn:disabled:focus-visible,
+.prompt-btn:disabled:focus-visible {
+  outline-color: var(--border);
 }

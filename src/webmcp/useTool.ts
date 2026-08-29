@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useBenchStore } from '../store/useBenchStore'
 import { benchTools } from './register'
 import { toolsetForLesson } from './toolsets'
+import { withAgentPresence } from './presence'
 import type { ModelContextRegistry, ToolDefinition } from './model-context'
 
 /**
@@ -34,7 +35,8 @@ export function useTool(tool: ToolDefinition): boolean {
       setAvailable(false)
       return
     }
-    mc.registerTool(tool)
+    // Register wrapped so the identity chip activates for this tool's calls.
+    mc.registerTool(withAgentPresence(tool))
     return () => {
       // removeTool is optional in the draft spec; absence is harmless here:
       // re-registering the same name overwrites the previous definition.
@@ -86,7 +88,8 @@ export function useLessonTools(): boolean {
     }
     for (const tool of wanted) {
       if (!registered.has(tool.name)) {
-        mc.registerTool(tool)
+        // Wrapped: the chip activates during any per-lesson tool's execute.
+        mc.registerTool(withAgentPresence(tool))
         registered.set(tool.name, tool)
       }
     }

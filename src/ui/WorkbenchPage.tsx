@@ -4,6 +4,7 @@
 
 import { AgentChip } from './AgentChip'
 import { ActionLog } from './ActionLog'
+import { HintPanel } from './HintPanel'
 import { LabReportForm } from './LabReportForm'
 import { Workbench } from './Workbench'
 import { useBenchStore } from '../store/useBenchStore'
@@ -25,8 +26,9 @@ export function WorkbenchPage() {
       </header>
       <div className="workbench-row">
         <Workbench />
-        <aside className="log-rail">
+        <aside className="log-rail" aria-label="Bench log, prompts, and lab report">
           <ActionLog />
+          <HintPanel />
           <LabReportForm />
         </aside>
       </div>
