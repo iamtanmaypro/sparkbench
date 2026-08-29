@@ -102,6 +102,12 @@ describe('solve: parallel circuits', () => {
 })
 
 describe('solve: degenerate and unsolvable cases', () => {
+  it('returns empty result for an empty netlist', () => {
+    const res = solve({ components: [], wires: [] })
+    expect(res.ok).toBe(false)
+    expect(Object.keys(res.readings)).toHaveLength(0)
+  })
+
   it('reports unsolvable for a floating isolated pair with no source loop', () => {
     // Two resistors wired together but nothing else: no reference issue, just
     // a singular system (no source, no ground path).
@@ -113,9 +119,44 @@ describe('solve: degenerate and unsolvable cases', () => {
     }
   })
 
-  it('returns empty result for an empty netlist', () => {
-    const res = solve({ components: [], wires: [] })
-    expect(res.ok).toBe(false)
-    expect(Object.keys(res.readings)).toHaveLength(0)
+  it('keeps solving when a spare part floats on the bench', () => {
+    // A working loop plus an unwired battery: the loop must keep its exact
+    // readings and the spare must read its open-circuit physics, not blank
+    // every meter with a failed solve.
+    const nl = {
+      components: [c('bat', 'battery', 3), c('r1', 'resistor', 100), c('spare', 'battery', 9)],
+      wires: [w('bat:a', 'r1:a'), w('r1:b', 'bat:b')],
+    }
+    const res = solve(nl)
+    expect(res.ok).toBe(true)
+    expect(res.readings.r1!.current).toBeCloseTo(3 / 100.5, 9)
+    expect(res.readings.spare!.voltage).toBeCloseTo(9, 6)
+    expect(Math.abs(res.readings.spare!.current)).toBeLessThan(1e-9)
+  })
+
+  it('gives a floating lone resistor zero volts and zero current', () => {
+    const nl = {
+      components: [c('bat', 'battery', 3), c('r1', 'resistor', 100), c('loose', 'resistor', 47)],
+      wires: [w('bat:a', 'r1:a'), w('r1:b', 'bat:b')],
+    }
+    const res = solve(nl)
+    expect(res.ok).toBe(true)
+    expect(res.readings.loose!.voltage).toBeCloseTo(0, 9)
+    expect(res.readings.loose!.current).toBeCloseTo(0, 9)
+    // The working loop is untouched by the spare part.
+    expect(res.readings.r1!.current).toBeCloseTo(3 / 100.5, 9)
+  })
+
+  it('reads live values mid-build with only one wire placed', () => {
+    const nl = {
+      components: [c('bat', 'battery', 3), c('r1', 'resistor', 100)],
+      wires: [w('bat:a', 'r1:a')],
+    }
+    const res = solve(nl)
+    expect(res.ok).toBe(true)
+    // No closed loop yet: nothing flows, but the battery still shows its EMF.
+    expect(res.readings.bat!.current).toBeCloseTo(0, 9)
+    expect(res.readings.bat!.voltage).toBeCloseTo(3, 6)
+    expect(res.readings.r1!.voltage).toBeCloseTo(0, 9)
   })
 })

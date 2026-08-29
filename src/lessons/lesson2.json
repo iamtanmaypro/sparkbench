@@ -1,0 +1,34 @@
+{
+  "id": "series-parallel",
+  "title": "Lesson 2: Series vs Parallel",
+  "goal": "Close the switch and watch how dim both bulbs are in series. Rewire them so each bulb gets nearly the full battery voltage, and both glow bright.",
+  "initialNetlist": {
+    "components": [
+      { "id": "bat1", "type": "battery", "x": 100, "y": 220 },
+      { "id": "sw1", "type": "switch", "x": 270, "y": 220 },
+      { "id": "bulb1", "type": "bulb", "x": 480, "y": 100 },
+      { "id": "bulb2", "type": "bulb", "x": 480, "y": 330 }
+    ],
+    "wires": [
+      { "from": "bat1:a", "to": "sw1:a" },
+      { "from": "sw1:b", "to": "bulb1:a" },
+      { "from": "bulb1:b", "to": "bulb2:a" },
+      { "from": "bulb2:b", "to": "bat1:b" }
+    ]
+  },
+  "allowedComponents": ["battery", "bulb", "switch", "voltmeter"],
+  "successPredicate": {
+    "kind": "all",
+    "of": [
+      { "kind": "bulb_lit", "component": "bulb1" },
+      { "kind": "bulb_lit", "component": "bulb2" },
+      { "kind": "voltage_within", "component": "bulb1", "min": 2.5, "max": 3.5 },
+      { "kind": "voltage_within", "component": "bulb2", "min": 2.5, "max": 3.5 }
+    ]
+  },
+  "hints": [
+    "In series, one current flows through everything, so each bulb only drops half the voltage.",
+    "In parallel, each bulb connects across the battery on its own branch and gets almost the full 3V.",
+    "You will need to remove some wires: select a wire and press Delete, then draw the parallel branches."
+  ]
+}

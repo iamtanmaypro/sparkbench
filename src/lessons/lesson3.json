@@ -1,0 +1,33 @@
+{
+  "id": "switches-logic",
+  "title": "Lesson 3: Switches and Logic",
+  "goal": "Two switches sit in series with the lamp. Close BOTH and the lamp lights: that is an AND gate made of parts. Then try rewiring them side by side to see OR logic.",
+  "initialNetlist": {
+    "components": [
+      { "id": "bat1", "type": "battery", "x": 90, "y": 220 },
+      { "id": "sw1", "type": "switch", "x": 290, "y": 120 },
+      { "id": "sw2", "type": "switch", "x": 460, "y": 120 },
+      { "id": "bulb1", "type": "bulb", "x": 650, "y": 220 }
+    ],
+    "wires": [
+      { "from": "bat1:a", "to": "sw1:a" },
+      { "from": "sw1:b", "to": "sw2:a" },
+      { "from": "sw2:b", "to": "bulb1:a" },
+      { "from": "bulb1:b", "to": "bat1:b" }
+    ]
+  },
+  "allowedComponents": ["battery", "switch", "bulb", "led"],
+  "successPredicate": {
+    "kind": "all",
+    "of": [
+      { "kind": "switch_closed", "component": "sw1" },
+      { "kind": "switch_closed", "component": "sw2" },
+      { "kind": "bulb_lit", "component": "bulb1" }
+    ]
+  },
+  "hints": [
+    "A closed switch is just a plain wire; an open switch breaks the whole loop.",
+    "AND logic: both switches in series must be closed before any current flows.",
+    "OR logic: put the switches in parallel branches so either one alone completes the circuit."
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "id": "free-build",
+  "title": "Lesson 5: Free Build",
+  "goal": "Your bench. Build whatever you like: every component is unlocked, there is no failure state, and your agent has the full toolbox.",
+  "initialNetlist": {
+    "components": [],
+    "wires": []
+  },
+  "allowedComponents": ["battery", "resistor", "led", "bulb", "switch", "fuse", "ammeter", "voltmeter"],
+  "successPredicate": { "kind": "count_at_least", "count": 2 },
+  "hints": [
+    "Try a voltage divider: two resistors in series, then measure across the lower one with a voltmeter.",
+    "A fuse in series with your battery is cheap insurance while you experiment.",
+    "Ask your agent to build something for you, then approve or reject each step."
+  ]
+}

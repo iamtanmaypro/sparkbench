@@ -1,0 +1,31 @@
+{
+  "id": "ohms-law",
+  "title": "Lesson 1: Ohm's Law",
+  "goal": "The resistor draws about 29mA right now, past the safe 25mA target. Get the battery current down to 25mA or less by adding resistance.",
+  "initialNetlist": {
+    "components": [
+      { "id": "bat1", "type": "battery", "x": 100, "y": 210 },
+      { "id": "r1", "type": "resistor", "value": 100, "x": 400, "y": 110 },
+      { "id": "vm1", "type": "voltmeter", "x": 400, "y": 300 }
+    ],
+    "wires": [
+      { "from": "bat1:a", "to": "r1:a" },
+      { "from": "r1:b", "to": "bat1:b" },
+      { "from": "vm1:a", "to": "r1:a" },
+      { "from": "vm1:b", "to": "r1:b" }
+    ]
+  },
+  "allowedComponents": ["battery", "resistor", "ammeter", "voltmeter"],
+  "successPredicate": {
+    "kind": "all",
+    "of": [
+      { "kind": "count_at_least", "type": "resistor", "count": 2 },
+      { "kind": "current_within", "type": "battery", "min": 0, "max": 0.025 }
+    ]
+  },
+  "hints": [
+    "Ohm's law: current = voltage / total resistance. More series resistance means less current.",
+    "The battery's own internal resistance (0.5 ohm) counts too, but it is tiny compared to your resistors.",
+    "Wire a second 100 ohm resistor in series: end-to-end in the same loop, not side by side."
+  ]
+}

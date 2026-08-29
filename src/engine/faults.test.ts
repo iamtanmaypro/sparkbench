@@ -76,6 +76,19 @@ describe('open circuit', () => {
     const { faults } = analyze(nl)
     expect(faults.some((f) => f.kind === 'open_circuit')).toBe(true)
   })
+
+  it('blames a burned part, not an innocent closed switch', () => {
+    // Lesson 4 shape: closed switch, live loop wiring, dead LED breaks it.
+    const nl = {
+      components: [c('bat', 'battery', 3), c('sw1', 'switch', 0, { closed: true }), c('r1', 'resistor', 150), c('led1', 'led', 0, { burnedOut: true })],
+      wires: [w('bat:a', 'sw1:a'), w('sw1:b', 'r1:a'), w('r1:b', 'led1:a'), w('led1:b', 'bat:b')],
+    }
+    const { faults } = analyze(nl)
+    const open = faults.find((f) => f.kind === 'open_circuit')!
+    expect(open.element).toBe('led1')
+    expect(open.context).toContain('burned out')
+    expect(open.context).not.toContain('sw1 is open')
+  })
 })
 
 describe('LED burnout warning', () => {

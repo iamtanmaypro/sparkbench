@@ -83,10 +83,27 @@ function detectOpen(netlist: Netlist, res: SolveResult): Fault[] {
   const maxCurrent = Math.max(...Object.values(res.readings).map((r) => Math.abs(r.current)))
   if (maxCurrent >= 1e-9) return []
 
-  const culprit =
-    netlist.components.find((c) => c.type === 'switch' && !c.closed) ??
-    netlist.components.find((c) => c.type !== 'battery')!
+  // A bare battery with nothing else on the bench has no culprit to point at.
+  const others = netlist.components.filter((c) => c.type !== 'battery')
+  if (others.length === 0 && !netlist.components.some((c) => c.type === 'switch' && !c.closed)) return []
+
+  // Name the actual break: a dead part first, then an open switch, then any
+  // other part (neutral wording — never claim a closed switch is open).
+  const dead = others.find((c) => c.burnedOut || c.blown)
+  const openSwitch = netlist.components.find((c) => c.type === 'switch' && !c.closed)
+  const culprit = dead ?? openSwitch ?? others[0]!
+  if (!culprit) return []
   const label = `${culprit.id} (${culprit.type})`
+  if (dead) {
+    return [
+      {
+        kind: 'open_circuit',
+        element: culprit.id,
+        context: `Open circuit: ${culprit.id} (${culprit.type}) is ${culprit.blown ? 'blown' : 'burned out'}, so no current can flow around the loop.`,
+        suggestion: `Replace ${culprit.id} with a fresh part, then re-measure.`,
+      },
+    ]
+  }
   return [
     {
       kind: 'open_circuit',

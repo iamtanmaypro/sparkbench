@@ -143,10 +143,60 @@ export function solve(netlist: Netlist): SolveResult {
     }
   }
 
-  const N = nextNode // real + synthetic nodes; node 0 is ground
+  // One reference (ground) per ELECTRICAL island: nodes joined by ANY stamped
+  // conductance (resistors, Rint, LEDs in either state) or source coupling.
+  // Grounding each island keeps a partially-wired bench solvable (a floating
+  // part grounds itself and reads its open-circuit physics) instead of
+  // blanking every meter. The island containing node 0 keeps node 0 as its
+  // reference, so fully-wired circuits produce the exact same system as before.
+  const islandParent = new Map<number, number>()
+  const islandFind = (r: number): number => {
+    while (islandParent.get(r) !== r) {
+      const p = islandParent.get(r)!
+      islandParent.set(r, islandParent.get(p)!)
+      r = islandParent.get(p)!
+    }
+    return r
+  }
+  for (let n = 0; n < nextNode; n++) islandParent.set(n, n)
+  for (const s of resistive) {
+    const ra = islandFind(s.a)
+    const rb = islandFind(s.b)
+    if (ra !== rb) islandParent.set(ra, rb)
+  }
+  for (const led of leds) {
+    const ra = islandFind(led.a)
+    const rb = islandFind(led.b)
+    if (ra !== rb) islandParent.set(ra, rb)
+  }
+  for (const s of vsrc) {
+    const ra = islandFind(s.nPlus)
+    const rb = islandFind(s.nMid)
+    if (ra !== rb) islandParent.set(ra, rb)
+  }
+  const islandGround = new Map<number, number>() // island root -> ground node idx
+  for (let n = 0; n < nextNode; n++) {
+    const island = islandFind(n)
+    const current = islandGround.get(island)
+    if (current === undefined || n < current) islandGround.set(island, n)
+  }
+
   const extra = vsrc.length
-  const size = N - 1 + extra // ground dropped; one current unknown per source
-  const v = (node: number): number => node - 1 // -1 marks ground; valid because node 0 is always a real node
+  // Column per non-ground node (real + synthetic) + current unknown per source.
+  const matrixIdx = new Map<number, number>()
+  for (let idx = 0; idx < nextNode; idx++) {
+    if (idx >= nodeId.size) {
+      // Synthetic battery-internal nodes are never grounds.
+      matrixIdx.set(idx, matrixIdx.size)
+      continue
+    }
+    const island = islandFind(idx)
+    if (islandGround.get(island) === idx) continue
+    matrixIdx.set(idx, matrixIdx.size)
+  }
+  const numCols = matrixIdx.size
+  const size = numCols + extra
+  const v = (node: number): number => matrixIdx.get(node) ?? -1 // -1 = this island's ground
 
   function stampRes(A: number[][], a: number, b: number, g: number): void {
     const va = v(a)
@@ -179,7 +229,7 @@ export function solve(netlist: Netlist): SolveResult {
       }
     }
     vsrc.forEach((s, k) => {
-      const row = N - 1 + k
+      const row = numCols + k
       const vp = v(s.nPlus)
       const vm = v(s.nMid)
       if (vp >= 0) {
@@ -231,7 +281,7 @@ export function solve(netlist: Netlist): SolveResult {
     if (c.type === 'battery' && !c.burnedOut) {
       // MNA's unknown is current into the + terminal; flip for discharge convention.
       const k = vsrc.findIndex((s) => s.nPlus === na)
-      cur = -x![N - 1 + k]!
+      cur = -x![numCols + k]!
     } else if (c.type === 'led' && !c.burnedOut) {
       const led = leds.find((l) => l.id === c.id)!
       cur = led.conducting ? Math.max((volt - componentDefaults.led.forwardDrop) / LED_DYNAMIC_R, 0) : 0
@@ -244,6 +294,7 @@ export function solve(netlist: Netlist): SolveResult {
 
   const nodes: SolutionNode[] = Array.from(nodeId.entries(), ([root, idx]) => ({
     id: `n${root}`,
+    // Relative to the node's own island ground (node 0 for the powered island).
     voltage: val(x!, idx),
   }))
   return { ok: true, nodes, readings }

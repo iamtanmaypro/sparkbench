@@ -1,0 +1,33 @@
+{
+  "id": "diagnose-fault",
+  "title": "Lesson 4: Diagnose the Fault",
+  "goal": "This circuit was working yesterday and the LED is dark today. Find what broke, fix it with a click or a new part, and light the LED.",
+  "initialNetlist": {
+    "components": [
+      { "id": "bat1", "type": "battery", "x": 100, "y": 220 },
+      { "id": "sw1", "type": "switch", "closed": true, "x": 300, "y": 220 },
+      { "id": "r1", "type": "resistor", "value": 150, "x": 500, "y": 120 },
+      { "id": "led1", "type": "led", "burnedOut": true, "x": 700, "y": 220 }
+    ],
+    "wires": [
+      { "from": "bat1:a", "to": "sw1:a" },
+      { "from": "sw1:b", "to": "r1:a" },
+      { "from": "r1:b", "to": "led1:a" },
+      { "from": "led1:b", "to": "bat1:b" }
+    ]
+  },
+  "allowedComponents": ["battery", "resistor", "led", "switch", "fuse", "ammeter", "voltmeter"],
+  "successPredicate": {
+    "kind": "all",
+    "of": [
+      { "kind": "led_lit", "component": "led1" },
+      { "kind": "current_within", "component": "led1", "min": 0.001, "max": 0.025 },
+      { "kind": "no_faults" }
+    ]
+  },
+  "hints": [
+    "The switch is closed, so that is not it. Select components and check the meter readings.",
+    "A burned-out component reads 0V across itself even with power connected: no current can pass.",
+    "LEDs die from too much current. led1 is dead: delete it, place a fresh one, keep r1 in series as its bodyguard."
+  ]
+}
