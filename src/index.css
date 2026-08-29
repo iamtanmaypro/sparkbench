@@ -1,281 +1,454 @@
-:root {
-  --bg: #101418;
-  --text: #c9d1d9;
-  --text-h: #f0f3f6;
-  --border: #2a3138;
-  --accent: #f5a623;
-  --banner-bg: #18202a;
-  --panel: #151b22;
-  --panel-2: #1a222c;
-  --good: #6fd08c;
-  --bad: #e06c75;
-  --wire: #d19a3f;
-  --comp-stroke: #e8edf2;
-  --agent: #7aa2f7;
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+/* ==========================================================================
+   Sparkbench visual system: "precision instrument" (DESIGN.md is the source
+   of truth; every rule below traces to a section there).
 
-  font-family: var(--sans);
-  color-scheme: dark;
+   Section map:
+     :root tokens .......... DESIGN.md 2 (colors) + 3 (type scale)
+     app frame / layout .... DESIGN.md 5 (top bar 56px, 280/300 rails, canvas
+                             hero, graph-paper grid)
+     panels/cards .......... DESIGN.md 4 + 6 (surface cards, engraved titles)
+     components ............ DESIGN.md 4 (buttons, chips, inputs, banner)
+     canvas nodes/wires .... DESIGN.md 4 (schematic glyphs, terminals, wires)
+     approval cards ........ DESIGN.md 4 + 6 + 7 (ticket entrance)
+     motion ................ DESIGN.md 7 (page-load reveal, micro-motions)
+     responsive ............ DESIGN.md 9 (1280 / 1100 / 720 breakpoints)
+   Test-critical hooks kept: .focus-pulse, .is-lit, .from-agent,
+   .tool-form-live, :tool-form-active / :tool-submit-active, .ghost-cursor,
+   approval layer hooks, wire-edge.
+   ========================================================================== */
+
+:root {
+  /* base surfaces */
+  --paper: #f6f1e7; /* app background, warm drafting paper */
+  --paper-deep: #ece5d6; /* rails, panels, recessed areas */
+  --surface: #fbf8f1; /* cards, approval cards, inspector */
+  --canvas: #faf7ef; /* workbench canvas, slightly brighter than paper */
+
+  /* structure */
+  --line: #d8cfbd; /* hairline borders */
+  --line-strong: #b9ad94; /* emphasized borders, dividers */
+  --ink: #2b2620; /* primary text, warm near-black */
+  --ink-soft: #6b6252; /* secondary text, labels */
+  --ink-faint: #9c917d; /* disabled, meta */
+
+  /* the live accent */
+  --spark: #e8641b; /* energy, active agent, focus rings, CTAs */
+  --spark-soft: #fbe8da; /* spark tint for backgrounds */
+
+  /* functional */
+  --copper: #b06a35; /* agent-originated actions */
+  --slate: #4a5a68; /* human-originated actions */
+  --signal: #2e7d4f; /* conducting, passed, success */
+  --signal-soft: #e2f0e6;
+  --alarm: #c03a2b; /* faults, blown fuse, burned LED */
+  --alarm-soft: #f7e3e0;
+
+  /* LED / component state colors (SVG renderers) */
+  --led-lit: #ffb020;
+  --led-dark: #7d7466;
+  --bulb-lit: #ffd24d;
+
+  /* type scale */
+  --text-xs: 0.6875rem; /* 11px: panel labels, log meta */
+  --text-sm: 0.8125rem; /* 13px: secondary UI, log rows, hints */
+  --text-md: 0.9375rem; /* 15px: body, buttons */
+  --text-lg: 1.25rem; /* section headings */
+  --text-xl: 1.75rem; /* app title */
+
+  /* fonts */
+  --font-mono: 'Sometype Mono', 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-sans: 'Public Sans', system-ui, 'Segoe UI', sans-serif;
+
+  /* elevation */
+  --shadow-1: 0 1px 3px rgb(43 38 32 / 0.08);
+  --shadow-2: 0 4px 12px rgb(43 38 32 / 0.12);
+
+  color-scheme: light;
 }
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  line-height: 1.5;
+  /* Barely-there paper grain over the warm base (DESIGN.md 1: texture, not
+     noise). A 3% turbulence layer reads as fiber, never as dirt. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.03'/%3E%3C/svg%3E");
 }
+
+h1,
+h2,
+h3 {
+  color: var(--ink);
+}
+
+/* ==========================================================================
+   App frame and layout (DESIGN.md 5)
+   ========================================================================== */
 
 .app-shell {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 12px 16px 24px;
-}
-
-h1 {
-  color: var(--text-h);
-  font-weight: 600;
-  letter-spacing: -0.5px;
-}
-
-/* ---------- WebMCP banner (Phase 0) ---------- */
-.webmcp-banner {
+  height: 100dvh;
   display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  background: var(--banner-bg);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--accent);
-  border-radius: 8px;
-  padding: 12px 16px;
-  margin-bottom: 16px;
-  font-size: 15px;
-  line-height: 145%;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-.webmcp-banner p {
-  margin: 0;
+.app-frame {
+  display: flex;
+  flex-direction: column;
   flex: 1;
+  min-height: 0;
 }
 
-.webmcp-banner button,
-.ghost-btn {
-  font: inherit;
-  font-size: 14px;
-  color: var(--text-h);
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 6px 12px;
-  cursor: pointer;
-}
-
-.webmcp-banner button:hover,
-.ghost-btn:hover {
-  border-color: var(--accent);
-}
-
-/* ---------- Frame ---------- */
+/* Top bar: 56px, hairline bottom border, engraved mono brand. */
 .topbar {
+  height: 56px;
+  flex-shrink: 0;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 14px;
-  padding: 4px 4px 10px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--paper);
+  animation: rise-in 200ms ease-out both;
 }
 
 .topbar .brand {
-  font-size: 20px;
   margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+  line-height: 1;
+}
+
+/* The spark period: the one live accent on the plate. */
+.topbar .brand::after {
+  content: '.';
+  color: var(--spark);
 }
 
 .tagline {
-  font-size: 13px;
-  color: var(--text);
-  opacity: 0.75;
+  font-size: var(--text-sm);
+  color: var(--ink-soft);
 }
 
 .fault-banner {
   flex: 1;
+  min-width: 0;
   text-align: center;
-  font-size: 13px;
-  color: var(--bad);
-  border: 1px solid var(--bad);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--alarm);
+  background: var(--alarm-soft);
+  border: 1px solid var(--alarm);
   border-radius: 6px;
-  padding: 4px 10px;
+  padding: 5px 10px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .workbench-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
-  gap: 12px;
-  /* start: the log rail must never stretch this row taller than the canvas
-     (its content grows with the log, which used to push the lab report below
-     the fold and scroll the whole page). */
-  align-items: start;
-}
-
-/* ---------- Workbench layout ---------- */
-.workbench {
-  display: grid;
-  grid-template-columns: 230px minmax(0, 1fr) 260px;
-  gap: 10px;
-  height: calc(100vh - 130px);
-  min-height: 480px;
-}
-
-.side-left,
-.side-right,
-.log-rail {
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+}
+
+/* The bench grid: left rail 280 (Lessons + Palette), canvas hero, right rail
+   300 (Inspector + Lab Report + Action Log). */
+.workbench {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr) 300px;
+  gap: 12px;
+  padding: 12px;
+}
+
+.rail-left,
+.rail-right {
   min-height: 0;
   overflow-y: auto;
-}
-
-/* The rail scrolls internally, capped to the same viewport budget as
-   .workbench, so the whole app fits one screen and the lab report stays
-   reachable without scrolling the page. */
-.log-rail {
-  max-height: calc(100vh - 130px);
-}
-
-/* Inside the rail the log is the flexible citizen: it yields its height so
-   the hint panel and the lab report stay visible, and scrolls its own list
-   when there are many entries. */
-.log-rail > .action-log {
-  flex: 1 1 auto;
-  min-height: 132px;
   display: flex;
   flex-direction: column;
+  gap: 12px;
+  padding: 2px;
+  animation: rise-in 240ms ease-out both;
 }
 
-.log-rail > .action-log > .panel-title,
-.log-rail > .action-log > .muted {
-  flex-shrink: 0;
+.rail-left {
+  animation-delay: 60ms;
 }
+
+.rail-right {
+  animation-delay: 120ms;
+}
+
+/* ==========================================================================
+   Workbench canvas: the desk (DESIGN.md 1 + 5)
+   ========================================================================== */
 
 .canvas-wrap {
   position: relative;
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  min-width: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
   overflow: hidden;
-  background: var(--bg);
+  background-color: var(--canvas);
+  /* Graph paper: 1px fine lines every 24px, stronger lines every 120px. */
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--line) 60%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--line) 60%, transparent) 1px, transparent 1px),
+    linear-gradient(color-mix(in srgb, var(--line-strong) 45%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--line-strong) 45%, transparent) 1px, transparent 1px);
+  background-size:
+    24px 24px,
+    24px 24px,
+    120px 120px,
+    120px 120px;
+  box-shadow: var(--shadow-1);
+  /* Canvas arrives last in the staggered reveal: fade only, no movement. */
+  animation: fade-in 300ms ease-out 120ms both;
 }
 
 .react-flow__attribution {
   display: none;
 }
 
-/* The Background pattern svg sits above the viewport in DOM order in this
-   setup and intercepts clicks meant for nodes; make it click-through. */
-.bench-bg {
-  pointer-events: none;
+/* React Flow chrome tuned to the instrument palette. */
+.react-flow {
+  --xy-controls-button-background-color: var(--surface);
+  --xy-controls-button-background-color-hover: #fff;
+  --xy-controls-button-color: var(--ink);
+  --xy-controls-button-border-color: var(--line-strong);
+  --xy-controls-button-color-hover: var(--ink);
+  --xy-minimap-background-color-props: var(--surface);
+  --xy-minimap-mask-background-color: rgb(43 38 32 / 0.06);
+  --xy-minimap-node-background-color: var(--line-strong);
+  --xy-minimap-node-border-radius: 2px;
 }
 
 .minimap {
-  background: var(--panel);
-  border: 1px solid var(--border);
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 6px;
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
 }
 
-/* ---------- Panels ---------- */
+/* ==========================================================================
+   Panels and cards (DESIGN.md 4 + 6)
+   ========================================================================== */
+
 .lesson-panel,
 .palette,
 .inspector,
-.action-log {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px;
-  font-size: 13.5px;
+.action-log,
+.lab-report,
+.hint-panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  box-shadow: var(--shadow-1);
+  font-size: var(--text-sm);
+  flex-shrink: 0;
 }
 
+/* Engraved-plate panel titles: the strongest identity carrier. */
 .panel-title {
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 1.2px;
-  color: var(--text);
-  opacity: 0.65;
-  margin-bottom: 8px;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
 }
 
 .muted {
-  opacity: 0.7;
+  color: var(--ink-soft);
 }
 
 .small {
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .panel-actions {
   display: flex;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
-/* Lesson list */
+/* ==========================================================================
+   Buttons (DESIGN.md 4)
+   ========================================================================== */
+
+.ghost-btn,
+.webmcp-banner button,
+.lab-report button[type='submit'],
+.approval-approve,
+.approval-reject,
+.approval-batch-btn,
+.danger-btn {
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 6px;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+.ghost-btn,
+.webmcp-banner button {
+  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  padding: 7px 12px;
+  min-height: 36px;
+}
+
+.ghost-btn:hover,
+.webmcp-banner button:hover {
+  border-color: var(--ink-soft);
+  background: #fff;
+}
+
+/* ==========================================================================
+   Lesson panel (DESIGN.md 4)
+   ========================================================================== */
+
 .lesson-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-bottom: 10px;
+  gap: 2px;
+  margin-bottom: 12px;
 }
 
 .lesson-tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
   text-align: left;
-  font: inherit;
-  font-size: 13px;
+  font: 400 var(--text-sm) / 1.35 var(--font-sans);
+  color: var(--ink-soft);
   background: transparent;
-  color: var(--text);
-  border: 1px solid transparent;
-  border-radius: 6px;
-  padding: 5px 8px;
+  border: none;
+  border-left: 2px solid transparent;
+  border-radius: 0 6px 6px 0;
+  padding: 6px 10px;
   cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease,
+    border-color 120ms ease;
 }
 
 .lesson-tab:hover {
-  background: var(--panel-2);
+  background: var(--paper);
+  color: var(--ink);
 }
 
 .lesson-tab.active {
-  border-color: var(--accent);
-  color: var(--text-h);
+  border-left-color: var(--spark);
+  background: var(--surface);
+  color: var(--ink);
 }
 
-.lesson-tab.done {
-  color: var(--good);
+.lesson-tab.done .lesson-name {
+  color: var(--signal);
+}
+
+.lesson-num {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+  flex-shrink: 0;
+}
+
+.lesson-tab.active .lesson-num {
+  color: var(--spark);
+  font-weight: 700;
+}
+
+.lesson-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.lesson-glyph {
+  flex-shrink: 0;
+  display: inline-flex;
 }
 
 .lesson-goal-title {
-  font-size: 14px;
+  font-size: var(--text-md);
+  font-weight: 700;
   margin: 4px 0 4px;
-  color: var(--text-h);
+  color: var(--ink);
 }
 
 .lesson-goal {
-  margin: 0 0 8px;
-  line-height: 145%;
+  margin: 0 0 12px;
+  line-height: 150%;
+  color: var(--ink-soft);
 }
 
+/* Rubber-stamp goal-complete badge (DESIGN.md 4). */
 .predicate-status {
   border-radius: 6px;
-  padding: 6px 8px;
-  font-size: 12.5px;
-  margin-bottom: 8px;
+  padding: 8px 10px;
+  font-size: var(--text-xs);
+  margin-bottom: 12px;
+  line-height: 1.45;
 }
 
 .predicate-status.pass {
-  background: rgba(111, 208, 140, 0.12);
-  color: var(--good);
-  border: 1px solid rgba(111, 208, 140, 0.4);
+  display: inline-block;
+  align-self: flex-start;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--signal);
+  background: var(--signal-soft);
+  border: 2px solid var(--signal);
+  border-radius: 6px;
+  transform: rotate(-2deg);
+  box-shadow: var(--shadow-1);
 }
 
 .predicate-status.pending {
-  background: var(--panel-2);
-  color: var(--text);
-  border: 1px solid var(--border);
+  background: var(--paper);
+  border: 1px dashed var(--line-strong);
+  color: var(--ink-soft);
 }
 
 .hint-row {
@@ -286,125 +459,167 @@ h1 {
 
 .hint {
   margin: 0;
-  font-size: 12.5px;
-  color: var(--accent);
-  background: rgba(245, 166, 35, 0.07);
-  border: 1px dashed rgba(245, 166, 35, 0.45);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--ink-soft);
+  background: var(--paper);
+  border: 1px dashed var(--line-strong);
+  border-left: 2px solid var(--spark);
   border-radius: 6px;
-  padding: 6px 8px;
+  padding: 6px 9px;
 }
 
-/* Palette */
+/* ==========================================================================
+   Palette (parts bin)
+   ========================================================================== */
+
 .palette-btn {
   display: flex;
   align-items: center;
   gap: 10px;
   width: 100%;
-  font: inherit;
-  font-size: 13px;
-  color: var(--text);
-  background: transparent;
-  border: 1px solid var(--border);
+  min-height: 40px;
+  font: 400 var(--text-sm) / 1 var(--font-sans);
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 6px;
-  padding: 6px 8px;
+  padding: 8px 10px;
   margin-bottom: 6px;
   cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease;
 }
 
 .palette-btn:hover:not(:disabled) {
-  border-color: var(--accent);
-  color: var(--text-h);
+  border-color: var(--ink-soft);
+  background: #fff;
 }
 
 .palette-btn:disabled {
-  opacity: 0.38;
+  color: var(--ink-faint);
+  background: var(--paper);
   cursor: not-allowed;
 }
 
 .palette-btn svg {
-  color: var(--comp-stroke);
+  color: var(--ink-soft);
   flex-shrink: 0;
 }
 
-/* Inspector */
+.palette-btn:hover:not(:disabled) svg {
+  color: var(--spark);
+}
+
+/* ==========================================================================
+   Inspector (DESIGN.md 3: mono tabular readouts)
+   ========================================================================== */
+
 .inspector-head {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+.inspector-head strong {
+  font-weight: 700;
 }
 
 .readings {
   display: grid;
   grid-template-columns: auto 1fr;
   column-gap: 12px;
-  row-gap: 2px;
-  margin: 0 0 10px;
-  background: var(--panel-2);
+  row-gap: 3px;
+  margin: 0 0 12px;
+  background: var(--paper);
+  border: 1px solid var(--line);
   border-radius: 6px;
   padding: 8px 10px;
 }
 
 .readings dt {
-  opacity: 0.7;
+  color: var(--ink-soft);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .readings dd {
   margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
   font-variant-numeric: tabular-nums;
-  color: var(--text-h);
+  color: var(--ink);
+  text-align: right;
 }
 
 .prop-row {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 12.5px;
-  margin-bottom: 10px;
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: var(--font-mono);
+  color: var(--ink-soft);
+  margin-bottom: 12px;
 }
 
 .prop-row input {
-  font: inherit;
-  font-size: 14px;
-  color: var(--text-h);
-  background: var(--bg);
-  border: 1px solid var(--border);
+  font: 400 var(--text-sm) / 1 var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
   border-radius: 6px;
-  padding: 6px 8px;
+  padding: 8px;
 }
 
 .prop-row input:focus {
   outline: none;
-  border-color: var(--accent);
+  border-color: var(--spark);
 }
 
 .danger-btn {
-  font: inherit;
-  font-size: 13px;
-  color: var(--bad);
-  background: transparent;
-  border: 1px solid var(--bad);
+  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--alarm);
+  background: var(--surface);
+  border: 1px solid var(--alarm);
   border-radius: 6px;
-  padding: 6px 12px;
-  cursor: pointer;
-  margin-top: 10px;
+  padding: 7px 12px;
+  min-height: 36px;
+  margin-top: 4px;
 }
 
 .danger-btn:hover {
-  background: rgba(224, 108, 117, 0.1);
+  background: var(--alarm);
+  color: var(--paper);
 }
 
 .fault-note {
-  color: var(--bad);
-  font-size: 12.5px;
-  margin: 6px 0 0;
+  color: var(--alarm);
+  background: var(--alarm-soft);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: var(--text-xs);
+  margin: 8px 0 0;
 }
 
 .inspector .small {
   margin-top: 10px;
 }
 
-/* Action log */
+/* ==========================================================================
+   Action log (DESIGN.md 4: mono rows, copper/slate dots, bold verbs)
+   ========================================================================== */
+
 .action-log ul {
   list-style: none;
   margin: 0;
@@ -415,82 +630,127 @@ h1 {
 }
 
 .action-log li {
-  padding: 4px 0;
-  border-bottom: 1px solid rgba(42, 49, 56, 0.6);
-  font-size: 12.5px;
-  line-height: 140%;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 5px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 145%;
+}
+
+.log-dot {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  transform: translateY(-1px);
+}
+
+.log-actor-agent .log-dot {
+  background: var(--copper);
+}
+
+.log-actor-you .log-dot {
+  background: var(--slate);
+}
+
+.log-actor-bench .log-dot {
+  background: var(--signal);
 }
 
 .log-time {
+  flex-shrink: 0;
   font-variant-numeric: tabular-nums;
-  opacity: 0.55;
-  margin-right: 6px;
+  color: var(--ink-faint);
+  font-size: var(--text-xs);
 }
 
 .log-actor {
-  font-weight: 600;
-  margin-right: 4px;
+  font-weight: 700;
+  margin-right: 2px;
+  flex-shrink: 0;
 }
 
 .log-actor-agent .log-actor {
-  color: var(--agent);
+  color: var(--copper);
 }
 
 .log-actor-you .log-actor {
-  color: var(--accent);
+  color: var(--slate);
 }
 
 .log-actor-bench .log-actor {
-  color: var(--good);
+  color: var(--signal);
 }
 
-/* ---------- Agent chip ---------- */
+.log-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Agent chip (DESIGN.md 4 chips; copper = agent, spark = waiting on you)
+   ========================================================================== */
+
 .agent-chip {
   margin-left: auto;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
-  background: var(--panel);
-  border: 1px solid var(--border);
+  font-size: var(--text-sm);
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
   border-radius: 999px;
-  padding: 5px 14px;
+  padding: 6px 14px;
+  box-shadow: var(--shadow-1);
   /* Smooth the idle -> working -> waiting flips; they happen live on camera
      during the demo's approval-card moment. */
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
 }
 
 .agent-chip.active {
-  border-color: var(--agent);
-  box-shadow: 0 0 10px rgba(122, 162, 247, 0.35);
+  border-color: var(--copper);
+  box-shadow: 0 0 0 1px var(--copper);
 }
 
 .agent-chip.waiting {
   border-style: dashed;
+  border-color: var(--spark);
 }
 
 .agent-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--border);
+  background: var(--line-strong);
+  transition: background-color 150ms ease;
 }
 
 .agent-dot.active {
-  background: var(--agent);
-  box-shadow: 0 0 8px var(--agent);
+  background: var(--copper);
+  box-shadow: 0 0 0 3px rgb(176 106 53 / 0.22);
 }
 
 .agent-status {
-  color: var(--agent);
-  font-size: 12px;
+  color: var(--copper);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
 }
 
 .agent-status.waiting {
-  color: var(--accent);
+  color: var(--spark);
+  font-weight: 700;
 }
 
-/* ---------- Canvas nodes ---------- */
+/* ==========================================================================
+   Canvas nodes (DESIGN.md 4: schematic symbols with hardware cues)
+   ========================================================================== */
+
 .comp-node {
   position: relative;
   width: 84px;
@@ -511,17 +771,19 @@ h1 {
 }
 
 .comp-node.is-selected .comp-body {
-  filter: drop-shadow(0 0 6px var(--accent));
+  outline: 2px solid var(--spark);
+  outline-offset: 3px;
+  border-radius: 6px;
 }
 
 .comp-node.from-agent .comp-body {
-  filter: drop-shadow(0 0 6px var(--agent));
+  filter: drop-shadow(0 0 6px rgb(176 106 53 / 0.55));
 }
 
 /* focus_component ("look here" from the agent): pulse the target part a few
-   times, then settle — the glow fades rather than nagging forever. */
+   times, then settle: the glow fades rather than nagging forever. */
 .comp-node.focus-pulse .comp-body {
-  outline: 2px solid var(--agent);
+  outline: 2px solid var(--copper);
   outline-offset: 3px;
   border-radius: 6px;
   animation: focus-pulse 0.8s ease-in-out 3;
@@ -535,8 +797,8 @@ h1 {
   top: -18px;
   right: -16px;
   z-index: 20;
-  fill: var(--agent);
-  filter: drop-shadow(0 0 5px rgba(122, 162, 247, 0.9));
+  fill: var(--copper);
+  filter: drop-shadow(0 0 5px rgb(176 106 53 / 0.9));
   pointer-events: none;
   animation: ghost-cursor-fade 2.4s ease-out forwards;
 }
@@ -559,81 +821,100 @@ h1 {
   }
 }
 
-/* Respect reduced motion: show the cursor, skip the movement/fade dance. */
-@media (prefers-reduced-motion: reduce) {
-  .ghost-cursor {
-    animation: none;
-    opacity: 0.85;
-  }
-  .comp-node.focus-pulse .comp-body {
-    animation: none;
-  }
-  .approval-card {
-    animation: none;
-  }
-  .agent-chip {
-    transition: none;
-  }
-}
-
 @keyframes focus-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(122, 162, 247, 0);
+    box-shadow: 0 0 0 0 rgb(176 106 53 / 0);
   }
   50% {
-    box-shadow: 0 0 0 7px rgba(122, 162, 247, 0.35);
+    box-shadow: 0 0 0 7px rgb(176 106 53 / 0.35);
   }
 }
 
+/* Schematic glyph strokes: warm near-black ink on paper. */
 svg .stroke-body {
-  stroke: var(--comp-stroke);
+  stroke: var(--ink);
   stroke-width: 2;
+  stroke-linecap: round;
 }
 
 svg .stroke-thick {
-  stroke: var(--comp-stroke);
+  stroke: var(--ink);
   stroke-width: 2.5;
 }
 
 svg .stroke-thin {
-  stroke: var(--comp-stroke);
+  stroke: var(--ink-soft);
   stroke-width: 1.2;
 }
 
 svg .lead {
-  stroke: var(--comp-stroke);
+  stroke: var(--ink-soft);
   stroke-width: 2;
+  stroke-linecap: round;
 }
 
 svg .dot {
-  fill: var(--comp-stroke);
+  fill: var(--ink);
 }
 
-svg .glyph-value {
-  fill: var(--text);
+/* Brass terminal posts at the lead tips (DESIGN.md 4). */
+svg .post {
+  fill: var(--copper);
+}
+
+.glyph-value {
+  fill: var(--ink-soft);
   stroke: none;
   font-size: 8.5px;
   text-anchor: middle;
-  font-family: var(--sans);
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
 }
 
-svg .meter-face {
-  fill: var(--text-h);
+.meter-face {
+  fill: var(--ink);
   stroke: none;
   font-size: 9px;
-  font-family: var(--sans);
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 
+/* LED glow halo: opacity transitions 200ms (DESIGN.md 7). */
+.led-halo {
+  fill: var(--led-lit);
+  opacity: 0;
+  transition: opacity 200ms ease;
+  pointer-events: none;
+}
+
+.led-halo.on {
+  opacity: 0.28;
+}
+
 svg .led-rays line {
-  stroke: var(--accent);
+  stroke: var(--led-lit);
   stroke-width: 1.6;
   stroke-linecap: round;
 }
 
+.bulb-halo {
+  fill: var(--bulb-lit);
+  opacity: 0;
+  transition: opacity 200ms ease;
+  pointer-events: none;
+}
+
+.bulb-halo.on {
+  opacity: 0.3;
+}
+
 .bulb-glow {
-  filter: drop-shadow(0 0 7px rgba(245, 166, 35, 0.9));
+  filter: drop-shadow(0 0 7px rgb(255 210 77 / 0.9));
+}
+
+.fault-dot {
+  fill: var(--alarm);
 }
 
 .node-meta {
@@ -642,64 +923,97 @@ svg .led-rays line {
   left: 50%;
   transform: translateX(-50%);
   white-space: nowrap;
+  font-family: var(--font-mono);
   font-size: 10px;
-  margin-top: 2px;
-  color: var(--text);
+  margin-top: 3px;
+  color: var(--ink-faint);
   display: flex;
   gap: 6px;
 }
 
 .node-id {
-  opacity: 0.7;
-  font-family: ui-monospace, monospace;
+  opacity: 0.85;
+}
+
+.agent-badge,
+.fault-badge {
+  border-radius: 4px;
+  padding: 0 4px;
+  font-size: 9px;
+  letter-spacing: 0.04em;
 }
 
 .agent-badge {
-  color: var(--agent);
-  border: 1px solid var(--agent);
-  border-radius: 4px;
-  padding: 0 4px;
-  font-size: 9px;
+  color: var(--copper);
+  border: 1px solid var(--copper);
+  background: color-mix(in srgb, var(--copper) 10%, transparent);
 }
 
 .fault-badge {
-  color: var(--bad);
-  border: 1px solid var(--bad);
-  border-radius: 4px;
-  padding: 0 4px;
-  font-size: 9px;
+  color: var(--alarm);
+  border: 1px solid var(--alarm);
+  background: var(--alarm-soft);
 }
 
-/* Terminal posts */
+/* Terminal handles: 8px circles, spark ring on hover (DESIGN.md 4). */
 .terminal {
-  width: 9px !important;
-  height: 9px !important;
-  background: var(--panel) !important;
-  border: 2px solid var(--accent) !important;
+  width: 8px !important;
+  height: 8px !important;
+  background: var(--surface) !important;
+  border: 1.5px solid var(--line-strong) !important;
   border-radius: 50% !important;
   /* Handles sit before .comp-body in DOM order; both are positioned, so the
      svg body would otherwise paint above and swallow every pointerdown aimed
      at a terminal post (wiring could never start from the canvas). */
   z-index: 10 !important;
+  transition:
+    box-shadow 120ms ease,
+    border-color 120ms ease,
+    transform 120ms ease;
 }
 
 .terminal:hover {
-  box-shadow: 0 0 8px var(--accent);
+  border-color: var(--spark) !important;
+  box-shadow: 0 0 0 3px var(--spark-soft);
+  transform: scale(1.5);
 }
 
-/* Wires */
+/* Wires (DESIGN.md 4): 3px ink-soft leads; conducting wires energize to
+   --spark over a soft 6px halo, transitioning stroke color in 240ms. */
 .wire-edge {
-  stroke: var(--wire);
-  stroke-width: 2.5;
+  stroke: var(--ink-soft);
+  stroke-width: 3;
   cursor: pointer;
+  transition: stroke 240ms ease;
 }
 
 .wire-edge.selected {
-  stroke: var(--accent);
+  stroke: var(--spark);
   stroke-width: 3.5;
 }
 
-/* Notes */
+.wire-conducting {
+  stroke: var(--spark);
+}
+
+.wire-halo {
+  fill: none;
+  stroke: var(--spark-soft);
+  stroke-width: 9;
+  stroke-linecap: round;
+  opacity: 0;
+  transition: opacity 240ms ease;
+  pointer-events: none;
+}
+
+.wire-live .wire-halo {
+  opacity: 1;
+}
+
+/* ==========================================================================
+   Sticky notes
+   ========================================================================== */
+
 .notes-layer {
   position: absolute;
   inset: 0;
@@ -713,24 +1027,25 @@ svg .led-rays line {
   top: 10px;
   pointer-events: auto;
   z-index: 6;
-  font-size: 12px;
 }
 
 .note-card {
   position: absolute;
   width: 170px;
   pointer-events: auto;
-  background: #f5df8e;
-  color: #33301f;
+  background: #f5e6a8;
+  color: #4a3f28;
+  border: 1px solid var(--line-strong);
   border-radius: 4px;
   padding: 6px 8px;
-  font-size: 12px;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.45);
+  font-size: var(--text-xs);
+  box-shadow: var(--shadow-2);
   transform: rotate(-1deg);
 }
 
 .note-card.author-agent {
-  background: #bcd0ff;
+  background: #e8dcc8;
+  border-color: var(--copper);
 }
 
 .note-card.dragging {
@@ -746,10 +1061,11 @@ svg .led-rays line {
 }
 
 .note-author {
+  font-family: var(--font-mono);
   font-weight: 700;
-  font-size: 10.5px;
+  font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.08em;
 }
 
 .note-close {
@@ -763,10 +1079,13 @@ svg .led-rays line {
 
 .note-card p {
   margin: 0;
-  line-height: 135%;
+  line-height: 140%;
 }
 
-/* ---------- Approval cards (agent write proposals) ---------- */
+/* ==========================================================================
+   Approval cards (DESIGN.md 4 + 6 + 7: the ticket clipped to the bench)
+   ========================================================================== */
+
 .approval-layer {
   position: absolute;
   top: 10px;
@@ -786,23 +1105,26 @@ svg .led-rays line {
   pointer-events: auto;
   flex-shrink: 0;
   width: 100%;
-  background: var(--panel);
-  border: 1px solid var(--agent);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-left: 3px solid var(--spark);
   border-radius: 8px;
-  padding: 8px 10px;
-  font-size: 12.5px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
-  animation: approval-in 160ms ease-out;
+  padding: 10px 12px;
+  font-size: var(--text-xs);
+  box-shadow: var(--shadow-2);
+  transform-origin: top right;
+  /* Ticket entrance: scale 0.96 -> 1 + fade, 180ms ease-out (DESIGN.md 7). */
+  animation: approval-in 180ms ease-out;
 }
 
 @keyframes approval-in {
   from {
     opacity: 0;
-    transform: translateY(-6px);
+    transform: scale(0.96);
   }
   to {
     opacity: 1;
-    transform: none;
+    transform: scale(1);
   }
 }
 
@@ -811,31 +1133,40 @@ svg .led-rays line {
   justify-content: space-between;
   align-items: baseline;
   gap: 8px;
-  margin-bottom: 4px;
+  padding-bottom: 5px;
+  margin-bottom: 7px;
+  border-bottom: 1px dashed var(--line-strong);
 }
 
 .approval-title {
-  font-size: 10.5px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--agent);
+  font-family: var(--font-mono);
+  font-size: 10px;
   font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--spark);
 }
 
 .approval-count {
-  font-size: 10.5px;
-  opacity: 0.65;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
 }
 
 .approval-summary {
-  margin: 0 0 8px;
-  line-height: 140%;
-  color: var(--text-h);
+  margin: 0 0 9px;
+  line-height: 145%;
+  font-size: var(--text-sm);
+  color: var(--ink);
 }
 
 .approval-wants {
-  color: var(--agent);
-  font-weight: 600;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 10px;
+  color: var(--copper);
+  font-weight: 700;
 }
 
 .approval-actions {
@@ -846,32 +1177,34 @@ svg .led-rays line {
 .approval-approve,
 .approval-reject {
   flex: 1;
-  font: inherit;
-  font-size: 13px;
-  border-radius: 6px;
-  padding: 5px 0;
-  cursor: pointer;
+  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  min-height: 36px;
 }
 
 .approval-approve {
-  color: #0e1420;
-  background: var(--agent);
-  border: 1px solid var(--agent);
-  font-weight: 600;
+  color: var(--spark);
+  background: var(--spark-soft);
+  border: 1px solid var(--spark);
 }
 
 .approval-approve:hover {
-  filter: brightness(1.12);
+  background: var(--spark);
+  color: var(--paper);
 }
 
 .approval-reject {
-  color: var(--bad);
-  background: transparent;
-  border: 1px solid var(--bad);
+  color: var(--alarm);
+  background: var(--surface);
+  border: 1px solid var(--alarm);
 }
 
 .approval-reject:hover {
-  background: rgba(224, 108, 117, 0.1);
+  background: var(--alarm);
+  color: var(--paper);
 }
 
 .approval-batch {
@@ -880,137 +1213,140 @@ svg .led-rays line {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: var(--panel);
-  border: 1px dashed var(--border);
+  background: var(--surface);
+  border: 1px dashed var(--line-strong);
   border-radius: 8px;
   padding: 6px 8px;
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--ink-soft);
 }
 
 .approval-batch input {
   width: 44px;
-  font: inherit;
-  font-size: 12px;
-  color: var(--text-h);
-  background: var(--bg);
-  border: 1px solid var(--border);
+  font: 400 var(--text-xs) / 1 var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line-strong);
   border-radius: 6px;
-  padding: 3px 6px;
+  padding: 5px 6px;
 }
 
 .approval-batch input:focus {
   outline: none;
-  border-color: var(--agent);
+  border-color: var(--spark);
 }
 
 .approval-batch-btn {
-  font: inherit;
-  font-size: 12px;
-  color: var(--agent);
+  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--spark);
   background: transparent;
-  border: 1px solid var(--agent);
+  border: 1px solid var(--spark);
   border-radius: 6px;
-  padding: 3px 8px;
-  cursor: pointer;
+  padding: 5px 8px;
 }
 
 .approval-batch-btn:hover {
-  background: rgba(122, 162, 247, 0.1);
+  background: var(--spark-soft);
 }
 
-/* ---------- Lab Report (declarative WebMCP form, Phase 3) ---------- */
+/* ==========================================================================
+   Lab report (declarative WebMCP form)
+   ========================================================================== */
+
 .lab-report {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px;
-  font-size: 13.5px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  flex-shrink: 0;
 }
 
 .lab-report label {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 12px;
-  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
 }
 
 .lab-report input,
 .lab-report textarea {
-  font: inherit;
-  font-size: 13px;
-  color: var(--text-h);
-  background: var(--bg);
-  border: 1px solid var(--border);
+  font: 400 var(--text-sm) / 1.45 var(--font-sans);
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line-strong);
   border-radius: 6px;
-  padding: 6px 8px;
+  padding: 8px;
   resize: vertical;
 }
 
 .lab-report input:focus,
 .lab-report textarea:focus {
   outline: none;
-  border-color: var(--accent);
+  border-color: var(--spark);
 }
 
 .lab-report button[type='submit'] {
-  font: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-h);
-  background: rgba(122, 162, 247, 0.12);
-  border: 1px solid var(--agent);
+  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  color: var(--spark);
+  background: var(--spark-soft);
+  border: 1px solid var(--spark);
   border-radius: 6px;
-  padding: 7px 12px;
-  cursor: pointer;
+  padding: 9px 12px;
+  min-height: 40px;
 }
 
 .lab-report button[type='submit']:hover {
-  background: rgba(122, 162, 247, 0.22);
+  background: var(--spark);
+  color: var(--paper);
 }
 
 .lab-report-done {
   margin: 0;
-  color: var(--good);
-  font-size: 12.5px;
+  color: var(--signal);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 /* Chrome declarative WebMCP pseudo-classes: while an agent is filling the
    form, the form matches :tool-form-active and its submit button matches
    :tool-submit-active. Browsers that do not know the pseudo-classes drop
    these rules, so each stands alone and simply does nothing until a runtime
-   ships them. The agent color makes "the agent is working" visible. */
+   ships them. The agent copper makes "the agent is working" visible. */
 .lab-report:tool-form-active {
-  border-color: var(--agent);
-  box-shadow: 0 0 0 1px var(--agent), 0 0 16px rgba(122, 162, 247, 0.4);
+  border-color: var(--copper);
+  box-shadow: 0 0 0 1px var(--copper), 0 0 14px rgb(176 106 53 / 0.35);
 }
 
 .lab-report:tool-form-active button[type='submit']:tool-submit-active {
-  box-shadow: 0 0 0 2px var(--agent), 0 0 12px rgba(122, 162, 247, 0.55);
+  box-shadow: 0 0 0 2px var(--copper), 0 0 12px rgb(176 106 53 / 0.45);
 }
 
 /* JS mirror for runtimes that fire toolactivated before shipping the
    pseudo-class: LabReportForm toggles this class on the same conditions. */
 .lab-report.tool-form-live {
-  border-color: var(--agent);
-  box-shadow: 0 0 0 1px var(--agent), 0 0 16px rgba(122, 162, 247, 0.4);
+  border-color: var(--copper);
+  box-shadow: 0 0 0 1px var(--copper), 0 0 14px rgb(176 106 53 / 0.35);
 }
 
-/* ---------- Hint panel (example prompts) ---------- */
-.hint-panel {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px;
-  font-size: 13px;
-}
+/* ==========================================================================
+   Hint panel (example prompts)
+   ========================================================================== */
 
 .hint-panel .panel-title {
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .prompt-list {
@@ -1028,39 +1364,44 @@ svg .led-rays line {
   justify-content: space-between;
   gap: 8px;
   width: 100%;
-  font: inherit;
-  font-size: 12.5px;
+  min-height: 36px;
+  font: 400 var(--text-sm) / 1.4 var(--font-mono);
   text-align: left;
-  color: var(--text);
-  background: var(--panel-2);
-  border: 1px solid var(--border);
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
   border-radius: 6px;
-  padding: 6px 9px;
+  padding: 7px 9px;
   cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease;
 }
 
 .prompt-btn:hover {
-  border-color: var(--agent);
-  color: var(--text-h);
+  border-color: var(--spark);
+  background: var(--surface);
 }
 
 .prompt-text::before {
   content: '\201C';
-  opacity: 0.6;
+  color: var(--ink-faint);
 }
 
 .prompt-text::after {
   content: '\201D';
-  opacity: 0.6;
+  color: var(--ink-faint);
 }
 
 .prompt-copy {
   flex-shrink: 0;
-  font-size: 10.5px;
-  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--agent);
-  opacity: 0.8;
+  color: var(--copper);
 }
 
 /* Canvas empty-state overlay: centered invitation while the bench is bare.
@@ -1078,55 +1419,184 @@ svg .led-rays line {
 
 .hint-panel-canvas {
   pointer-events: auto;
-  width: 320px;
+  width: 330px;
   max-width: calc(100% - 48px);
-  background: rgba(21, 27, 34, 0.92);
-  border-color: var(--agent);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(2px);
+  /* Level 2 floating overlay (DESIGN.md 6). */
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-2);
 }
 
-/* ---------- Narrow windows ---------- */
-/* The canvas is the product; fixed side columns must never crush it (at 900px
-   the 230+260+280 of fixed columns left a 66px-wide canvas). */
-@media (max-width: 1180px) {
-  .workbench {
-    grid-template-columns: 180px minmax(0, 1fr) 220px;
+/* ==========================================================================
+   WebMCP banner (DESIGN.md 4: quiet, spark-soft, never error-like)
+   ========================================================================== */
+
+.webmcp-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--spark-soft);
+  border: 1px solid var(--spark);
+  border-radius: 8px;
+  padding: 8px 10px 8px 14px;
+  margin: 12px 12px 0;
+  font-size: var(--text-sm);
+  line-height: 145%;
+  color: var(--ink);
+  animation: fade-in 240ms ease-out both;
+}
+
+.webmcp-banner p {
+  margin: 0;
+  flex: 1;
+}
+
+/* ==========================================================================
+   Motion (DESIGN.md 7)
+   ========================================================================== */
+
+/* Page-load staggered reveal: top bar first, rails next (60ms apart),
+   canvas last with a pure fade. One-time, subtle. */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
   }
-  .workbench-row {
-    grid-template-columns: minmax(0, 1fr) 250px;
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
-@media (max-width: 940px) {
-  /* Stack everything in one column: palette, canvas, inspector, then the log
-     rail below. The rail gives up its one-screen cap; the page scrolls. */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Respect reduced motion: every animation above collapses to its settled
+   state; hover/transition motion is silenced too. */
+@media (prefers-reduced-motion: reduce) {
+  .topbar,
+  .rail-left,
+  .rail-right,
+  .canvas-wrap,
+  .webmcp-banner {
+    animation: none;
+  }
+  .ghost-cursor {
+    animation: none;
+    opacity: 0.85;
+  }
+  .comp-node.focus-pulse .comp-body {
+    animation: none;
+  }
+  .approval-card {
+    animation: none;
+  }
+  .agent-chip,
+  .agent-dot,
+  .led-halo,
+  .bulb-halo,
+  .wire-edge,
+  .wire-halo,
+  .terminal,
+  .comp-body,
+  .lesson-tab,
+  .palette-btn,
+  .prompt-btn,
+  .approval-approve,
+  .approval-reject,
+  .ghost-btn,
+  .danger-btn {
+    transition: none;
+  }
+  .comp-body.lever {
+    transition: none !important;
+  }
+}
+
+/* ==========================================================================
+   Responsive (DESIGN.md 9)
+   ========================================================================== */
+
+/* 1100-1279px: rails slim to 260/280. */
+@media (max-width: 1279px) {
   .workbench {
+    grid-template-columns: 260px minmax(0, 1fr) 280px;
+  }
+}
+
+/* Below 1100px: the canvas is the hero, full width first; both rails stack
+   below it. Palette buttons become a wrapped strip; the one-screen height
+   budget is released so the page scrolls. */
+@media (max-width: 1099px) {
+  .app-shell {
     height: auto;
-    grid-template-columns: minmax(0, 1fr);
+    min-height: 100dvh;
+    overflow: visible;
   }
-  .workbench-row {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .log-rail {
-    max-height: none;
+  .workbench {
+    display: flex;
+    flex-direction: column;
   }
   .canvas-wrap {
+    order: -1;
     height: 56vh;
-    min-height: 380px;
+    min-height: 420px;
+    flex-shrink: 0;
+  }
+  .rail-left,
+  .rail-right {
+    overflow-y: visible;
+  }
+  .palette .panel-title {
+    width: 100%;
+  }
+  .palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .palette-btn {
+    width: auto;
+    flex: 1 1 40%;
+    margin-bottom: 0;
   }
 }
 
-/* ---------- Keyboard operability (A16) ---------- */
-/* One visible focus ring for every interactive control, keyboard-driven.
-   :focus-visible skips mouse clicks; inputs keep their accent-border focus
-   plus this ring when tabbed to. */
+/* Below 720px: stacked single column; approval cards go full-width. */
+@media (max-width: 719px) {
+  .topbar {
+    height: auto;
+    flex-wrap: wrap;
+    padding: 8px 12px;
+  }
+  .workbench {
+    padding: 8px;
+    gap: 8px;
+  }
+  .approval-layer {
+    width: calc(100% - 20px);
+  }
+  .canvas-wrap {
+    height: 48vh;
+  }
+}
+
+/* ==========================================================================
+   Keyboard operability (A16): one visible focus ring for every interactive
+   control, keyboard-driven. :focus-visible skips mouse clicks.
+   ========================================================================== */
+
 :where(button, input, textarea, select, a, [tabindex]):focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--spark);
   outline-offset: 2px;
 }
 
 .palette-btn:disabled:focus-visible,
 .prompt-btn:disabled:focus-visible {
-  outline-color: var(--border);
+  outline-color: var(--ink-faint);
 }

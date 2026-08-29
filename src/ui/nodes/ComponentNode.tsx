@@ -71,7 +71,13 @@ function Glyph(p: ComponentData) {
     case 'led':
       return (
         <>
-          <polygon points="32,8 32,36 54,22" fill={p.burnedOut ? '#3a2f2f' : p.lit ? '#ffdf6b' : 'none'} className="stroke-body" />
+          {/* Glow halo is always mounted so its opacity can transition. */}
+          <circle cx={42} cy={22} r={17} className={`led-halo ${p.lit && !p.burnedOut ? 'on' : ''}`} />
+          <polygon
+            points="32,8 32,36 54,22"
+            fill={p.burnedOut ? 'var(--alarm-soft)' : p.lit ? 'var(--led-lit)' : 'none'}
+            className="stroke-body"
+          />
           <line x1={54} y1={10} x2={54} y2={34} className="stroke-body" />
           {p.lit && !p.burnedOut && (
             <g className="led-rays">
@@ -86,7 +92,14 @@ function Glyph(p: ComponentData) {
     case 'bulb':
       return (
         <>
-          <circle cx={42} cy={22} r={14} fill={p.lit ? 'radial-gradient(#fff7cf,#f5a623)' : p.burnedOut ? '#33291f' : 'none'} className={`stroke-body ${p.lit ? 'bulb-glow' : ''}`} />
+          <circle cx={42} cy={22} r={20} className={`bulb-halo ${p.lit && !p.burnedOut ? 'on' : ''}`} />
+          <circle
+            cx={42}
+            cy={22}
+            r={14}
+            fill={p.burnedOut ? 'var(--paper-deep)' : p.lit ? 'var(--bulb-lit)' : 'none'}
+            className={`stroke-body ${p.lit && !p.burnedOut ? 'bulb-glow' : ''}`}
+          />
           <line x1={33} y1={13} x2={51} y2={31} className="stroke-thin" />
           <line x1={51} y1={13} x2={33} y2={31} className="stroke-thin" />
         </>
@@ -125,7 +138,7 @@ function Glyph(p: ComponentData) {
     case 'ammeter':
       return (
         <>
-          <circle cx={42} cy={22} r={15} fill="var(--panel)" className="stroke-body" />
+          <circle cx={42} cy={22} r={15} fill="var(--surface)" className="stroke-body" />
           <text x={42} y={27} textAnchor="middle" className="meter-face">
             {`${fmt(Math.abs(p.current))}A`}
           </text>
@@ -134,7 +147,7 @@ function Glyph(p: ComponentData) {
     case 'voltmeter':
       return (
         <>
-          <circle cx={42} cy={22} r={15} fill="var(--panel)" className="stroke-body" />
+          <circle cx={42} cy={22} r={15} fill="var(--surface)" className="stroke-body" />
           <text x={42} y={27} textAnchor="middle" className="meter-face">
             {`${fmt(Math.abs(p.voltage))}V`}
           </text>
@@ -165,6 +178,9 @@ export const ComponentNode = memo(function ComponentNode({ id, data }: NodeProps
       {/* leads */}
       <line x1={LEAD_L.x} y1={LEAD_L.y} x2={26} y2={LEAD_L.y} className="lead" />
       <line x1={W - 26} y1={LEAD_R.y} x2={LEAD_R.x} y2={LEAD_R.y} className="lead" />
+      {/* Brass terminal posts where leads meet the outside world (DESIGN.md 4). */}
+      <circle cx={LEAD_L.x} cy={LEAD_L.y} r={2.6} className="post" />
+      <circle cx={LEAD_R.x} cy={LEAD_R.y} r={2.6} className="post" />
       <Glyph {...d} />
     </svg>
   )

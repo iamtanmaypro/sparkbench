@@ -55,6 +55,15 @@ export function HintPanel({ variant = 'rail' }: { variant?: 'rail' | 'canvas' })
             >
               <span className="prompt-text">{p}</span>
               <span className="prompt-copy" aria-hidden="true">
+                <svg width="11" height="11" viewBox="0 0 12 12">
+                  <rect x="4" y="4" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" strokeWidth="1.2" />
+                  <path
+                    d="M8 4V3a1.2 1.2 0 0 0-1.2-1.2H3A1.2 1.2 0 0 0 1.8 3v3.8A1.2 1.2 0 0 0 3 8h1"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.2"
+                  />
+                </svg>
                 {copiedIdx === i ? 'copied' : 'copy'}
               </span>
             </button>

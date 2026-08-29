@@ -26,3 +26,4 @@ dist-ssr
 # Mission-session scratch (browser automation artifacts, not product code)
 .playwright-mcp/
 /*.png
+design-review/

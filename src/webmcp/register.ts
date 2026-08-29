@@ -1,15 +1,15 @@
-// The WebMCP tool inventory — the heart of Sparkbench's agent surface.
+// The WebMCP tool inventory  -  the heart of Sparkbench's agent surface.
 //
 // Structure (mirrors architecture.md):
-//   pingTool    — Gate-1 health check, registered by WebMcpBanner
-//   readTools   — flat, always-available reads (readOnlyHint: true)
-//   navTools    — visible-UI navigation, no data mutation
-//   writeTools  — approvals.ts: proposal -> approval card -> execute on
+//   pingTool     -  Gate-1 health check, registered by WebMcpBanner
+//   readTools    -  flat, always-available reads (readOnlyHint: true)
+//   navTools     -  visible-UI navigation, no data mutation
+//   writeTools   -  approvals.ts: proposal -> approval card -> execute on
 //                 Approve, plus add_note (auto-executes) and the
 //                 get_proposal_status read the agent awaits outcomes with
-//   diagnosisTools — diagnosis.ts: run_diagnosis, which the dynamic toolset
+//   diagnosisTools  -  diagnosis.ts: run_diagnosis, which the dynamic toolset
 //                 registers only in lessons 4+
-//   benchTools  — the canonical POOL of every tool that can ever be
+//   benchTools   -  the canonical POOL of every tool that can ever be
 //                 registered; budgets.test.ts lints everything here.
 //
 // The dynamic-toolset feature re-registers per-lesson subsets of this pool
@@ -19,7 +19,7 @@
 //
 // Rules every tool here follows:
 //   - Tools wrap Zustand store state/actions only (never engine internals or
-//     parallel mutation paths) — the same actions a human click calls.
+//     parallel mutation paths)  -  the same actions a human click calls.
 //   - Budgets: name <=30, description <=500, param desc <=150, output <=1.5K
 //     (enforced by budgets.test.ts; outputs serialize through boundedOutput).
 //   - Every execute() honors the host AbortSignal and never navigates the SPA.
@@ -62,7 +62,7 @@ export const pingTool: ToolDefinition = {
       app: 'Sparkbench',
       status: 'ok',
       message:
-        "Connected to the student's electronics workbench. Circuit tools arrive in later lessons.",
+        'Connected to the student\'s electronics workbench. Circuit tools are registered for the current lesson; call describe_workbench to see the bench.',
     }
   },
 }

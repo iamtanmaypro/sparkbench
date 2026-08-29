@@ -5,7 +5,6 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import {
   ReactFlow,
-  Background,
   Controls,
   MiniMap,
   addEdge,
@@ -29,6 +28,8 @@ import { Inspector } from './Inspector'
 import { NotesLayer } from './NotesLayer'
 import { ApprovalCard } from './ApprovalCard'
 import { HintPanel } from './HintPanel'
+import { ActionLog } from './ActionLog'
+import { LabReportForm } from './LabReportForm'
 
 const nodeTypes = { component: ComponentNode }
 const edgeTypes = { wire: WireEdge }
@@ -189,7 +190,8 @@ function WorkbenchInner() {
 
   return (
     <div className="workbench">
-      <aside className="side-left" aria-label="Lessons and parts">
+      {/* Left rail (DESIGN.md 5): Lessons + Palette on the deep paper. */}
+      <aside className="rail-left" aria-label="Lessons and parts">
         <LessonPanel />
         <Palette allowed={lesson?.allowedComponents ?? []} />
       </aside>
@@ -236,9 +238,11 @@ function WorkbenchInner() {
           proOptions={{ hideAttribution: true }}
           // No aria-label here: it would land on a plain wrapper div where
           // aria-label is prohibited. The named region above carries the
-          // canvas's accessible name.
+          // canvas's accessible name. The graph-paper grid is CSS on
+          // .canvas-wrap (DESIGN.md 5), so no Background component here: it
+          // would sit above the viewport in DOM order and intercept clicks
+          // meant for nodes.
         >
-          <Background gap={18} color="#1c232b" className="bench-bg" />
           {/* No aria-label on Controls: RF renders a plain wrapper div, where
               aria-label is prohibited (axe: aria-prohibited-attr). The zoom
               buttons inside carry their own labels. */}
@@ -257,8 +261,15 @@ function WorkbenchInner() {
         )}
       </div>
 
-      <aside className="side-right" aria-label="Component inspector">
+      {/* Right rail (DESIGN.md 5): Inspector (meters) + Lab Report + Action
+          Log. The log flexes to fill and scrolls its own list. The prompts
+          panel shows here on a seeded bench; on an empty bench it lives on
+          the canvas instead, so the prompts never render twice. */}
+      <aside className="rail-right" aria-label="Component inspector, lab report, and bench log">
         <Inspector />
+        <LabReportForm />
+        {components.length > 0 && <HintPanel />}
+        <ActionLog />
       </aside>
     </div>
   )
