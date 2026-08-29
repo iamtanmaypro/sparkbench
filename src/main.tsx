@@ -1,5 +1,9 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+// React Flow's base styles MUST load before our index.css so our overrides win.
+// Without it the pane collapses to zero width, handles render inline (wiring
+// and hit-testing break), and pan/zoom silently do nothing.
+import '@xyflow/react/dist/style.css'
 import './index.css'
 import App from './App.tsx'
 import { useBenchStore } from './store/useBenchStore'

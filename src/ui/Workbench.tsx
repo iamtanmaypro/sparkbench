@@ -11,6 +11,8 @@ import {
   addEdge,
   useNodesState,
   useEdgesState,
+  ConnectionMode,
+  useReactFlow,
 } from '@xyflow/react'
 import type { Connection, Edge, OnNodeDrag } from '@xyflow/react'
 import { ReactFlowProvider } from '@xyflow/react'
@@ -32,6 +34,19 @@ const edgeTypes = { wire: WireEdge }
 function WorkbenchInner() {
   const currentLessonId = useBenchStore((s) => s.currentLessonId)
   const lesson = useMemo(() => getLesson(currentLessonId), [currentLessonId])
+  const rf = useReactFlow()
+
+  // A new lesson seeds a fresh bench; if the student panned away, the seeded
+  // parts would render offscreen. Re-fit whenever the lesson changes. Empty
+  // benches (free build) are skipped: fitting zero nodes clamps zoom to max.
+  // No duration: d3 tweens run on rAF, which browsers throttle for occluded
+  // windows, leaving the viewport frozen mid-animation.
+  useEffect(() => {
+    const next = getLesson(currentLessonId)
+    if (!next || next.initialNetlist.components.length === 0) return
+    const t = setTimeout(() => rf.fitView({ padding: 0.25 }), 60)
+    return () => clearTimeout(t)
+  }, [currentLessonId, rf])
 
   // Store -> React Flow projection. Positions live in RF state while dragging
   // and commit to the store on drag stop (keeps 60fps without store churn).
@@ -43,6 +58,8 @@ function WorkbenchInner() {
   const moveNode = useBenchStore((s) => s.moveNode)
   const connectTerminals = useBenchStore((s) => s.connectTerminals)
   const removeWire = useBenchStore((s) => s.removeWire)
+  const removeComponent = useBenchStore((s) => s.removeComponent)
+  const select = useBenchStore((s) => s.select)
 
   const [rfNodes, setRfNodes, onNodesChange] = useNodesState<BenchNodeRF>(
     storeNodes.map((n) => ({
@@ -93,8 +110,16 @@ function WorkbenchInner() {
         const kept = nds
           .filter((n) => storeNodes.some((s) => s.id === n.id))
           .map((n) => {
+            const storeNode = storeNodes.find((s) => s.id === n.id)!
             const d = dataByKey.get(n.id)
-            return d ? { ...n, data: d } : n
+            return {
+              // The store owns positions too: lesson reseed/reset must move
+              // existing RF nodes, not just fresh ones. During drags this is a
+              // no-op because moveNode commits the same coordinates back.
+              ...n,
+              position: { x: storeNode.x, y: storeNode.y },
+              ...(d ? { data: d } : {}),
+            }
           })
         return [...kept, ...added]
       }),
@@ -140,6 +165,15 @@ function WorkbenchInner() {
     [moveNode],
   )
 
+  // Clicking the empty canvas is the natural "deselect" gesture. React Flow's
+  // own pane click only hides the selection box; node.selected flags persist,
+  // so a later Backspace would delete a part the student believes is
+  // deselected. Clear both the store selection and RF's node selection.
+  const onPaneClick = useCallback(() => {
+    select(null)
+    setRfNodes((nds) => nds.map((n) => (n.selected ? { ...n, selected: false } : n)))
+  }, [select, setRfNodes])
+
   return (
     <div className="workbench">
       <aside className="side-left">
@@ -158,9 +192,13 @@ function WorkbenchInner() {
               if (ch.type === 'position' && ch.position) {
                 moveNode(ch.id, ch.position.x ?? 0, ch.position.y ?? 0)
               }
+              // Keyboard delete (Backspace/Delete on a selected node) must
+              // reach the store, or the part silently resurrects on re-sync.
+              if (ch.type === 'remove') removeComponent(ch.id)
             }
           }}
           onNodeDragStop={onNodeDragStop}
+          onPaneClick={onPaneClick}
           onEdgesChange={(changes) => {
             onEdgesChange(changes)
             for (const ch of changes) {
@@ -171,6 +209,10 @@ function WorkbenchInner() {
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           defaultEdgeOptions={{ type: 'wire' }}
+          // Loose mode: any terminal post can start or receive a wire. With
+          // strict mode the right-hand post is target-only on top, so dragging
+          // from it (the natural gesture) silently did nothing.
+          connectionMode={ConnectionMode.Loose}
           deleteKeyCode={['Backspace', 'Delete']}
           connectionRadius={24}
           fitView

@@ -68,6 +68,10 @@ describe('Workbench (store-driven canvas interactions)', () => {
     expect(useBenchStore.getState().components).toHaveLength(0)
   })
 
+  // Keyboard delete (Backspace on a selected node) is verified in the live
+  // browser pass: React Flow's key handling requires real focus plumbing that
+  // happy-dom does not emulate, so a synthetic keyDown never reaches it here.
+
   it('inspector shows live readings for the selected part', () => {
     const s = useBenchStore.getState()
     const bat = s.addComponent('battery')

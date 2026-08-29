@@ -20,7 +20,7 @@
     "kind": "all",
     "of": [
       { "kind": "count_at_least", "type": "resistor", "count": 2 },
-      { "kind": "current_within", "type": "battery", "min": 0, "max": 0.025 }
+      { "kind": "current_within", "type": "battery", "min": 0.005, "max": 0.025 }
     ]
   },
   "hints": [

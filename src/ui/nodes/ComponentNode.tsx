@@ -173,7 +173,11 @@ export const ComponentNode = memo(function ComponentNode({ id, data }: NodeProps
         faulty ? 'is-faulty' : '',
         d.origin === 'agent' ? 'from-agent' : '',
       ].join(' ')}
-      onMouseDown={() => select(id)}
+      // Select on click, not mousedown: React Flow's d3-drag stops immediate
+      // propagation on mousedown, so a mousedown handler never sees body
+      // clicks and the Inspector could only ever show the last-placed part.
+      // d3 suppresses click after a real drag, so this stays click-only.
+      onClick={() => select(id)}
     >
       {/* Two terminal posts; each exposes source+target so wires can run any direction. */}
       <Handle type="target" position={Position.Left} id="a" className="terminal" style={{ left: 4 }} />

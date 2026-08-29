@@ -110,6 +110,22 @@ describe('predicate evaluation', () => {
     expect(after.passed).toBe(true)
   })
 
+  it('lesson 1 predicate fails on an open circuit (0 current must not count as success)', () => {
+    const l1 = getLesson('ohms-law')!
+    // Two resistors on the bench but no wires: the count leaf passes while the
+    // battery reads 0A. The predicate min (0.005A) must reject this state.
+    const open = {
+      components: [
+        ...l1.initialNetlist.components.map((c) => ({ id: c.id, type: c.type, value: c.value ?? 0 })),
+        { id: 'r2', type: 'resistor' as const, value: 100 },
+      ],
+      wires: [],
+    }
+    const sol = solve(open)
+    const res = evaluate(l1.successPredicate, open.components, sol, detectFaults(open, sol))
+    expect(res.passed).toBe(false)
+  })
+
   it('lesson 3 AND-logic predicate needs both switches closed', () => {
     const l3 = getLesson('switches-logic')!
     const mk = (closed: boolean[]) => ({

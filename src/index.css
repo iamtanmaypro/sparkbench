@@ -570,6 +570,10 @@ svg .led-rays line {
   background: var(--panel) !important;
   border: 2px solid var(--accent) !important;
   border-radius: 50% !important;
+  /* Handles sit before .comp-body in DOM order; both are positioned, so the
+     svg body would otherwise paint above and swallow every pointerdown aimed
+     at a terminal post (wiring could never start from the canvas). */
+  z-index: 10 !important;
 }
 
 .terminal:hover {
