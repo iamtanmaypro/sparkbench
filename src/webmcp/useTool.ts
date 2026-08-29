@@ -19,12 +19,43 @@ export function getModelContext(): ModelContextRegistry | null {
 }
 
 /**
+ * How a tool registration is undone. Real Chrome 151 ships ModelContext with
+ * exactly registerTool / getTools / executeTool / ontoolchange: there is no
+ * removeTool method at all (verified on a live Chrome 151 with WebMCP
+ * enabled). The documented removal mechanism is instead the AbortSignal
+ * passed as registerTool's second optional argument: aborting it unregisters
+ * the tool and fires `toolchange`. Before Chrome 153 that abort also cancels
+ * in-flight executions of the tool, which is acceptable because we only
+ * unregister at lesson changes and unmount, where a cancelled execute is the
+ * desired outcome anyway.
+ */
+type Unregister = () => void
+
+/**
+ * Register one tool and return its undo function. The undo prefers a
+ * name-based removeTool when a runtime ships one (newer drafts), then always
+ * aborts the registration signal so signal-only runtimes (real Chrome)
+ * unregister the tool too. Calling both is safe: unregistering twice is a
+ * no-op and the second `toolchange` never fires.
+ */
+function registerAndTrack(mc: ModelContextRegistry, tool: ToolDefinition): Unregister {
+  const controller = new AbortController()
+  // Wrapped so the identity chip activates for this tool's calls.
+  mc.registerTool(withAgentPresence(tool), { signal: controller.signal })
+  return () => {
+    mc.removeTool?.(tool.name)
+    controller.abort()
+  }
+}
+
+/**
  * ~40-line hook: registers one tool while the WebMCP model context exists,
  * and reports availability so the UI can show a dismissible banner when the
  * app is opened outside an agent-capable runtime.
  *
- * Re-registers if the tool object changes; cleans up on unmount so React
- * StrictMode double-invocation never leaves stale registrations behind.
+ * Re-registers if the tool object changes; cleans up on unmount (via the
+ * registration AbortSignal) so React StrictMode double-invocation never
+ * leaves stale registrations behind.
  */
 export function useTool(tool: ToolDefinition): boolean {
   const [available, setAvailable] = useState(() => getModelContext() !== null)
@@ -35,30 +66,25 @@ export function useTool(tool: ToolDefinition): boolean {
       setAvailable(false)
       return
     }
-    // Register wrapped so the identity chip activates for this tool's calls.
-    mc.registerTool(withAgentPresence(tool))
-    return () => {
-      // removeTool is optional in the draft spec; absence is harmless here:
-      // re-registering the same name overwrites the previous definition.
-      mc.removeTool?.(tool.name)
-    }
+    return registerAndTrack(mc, tool)
   }, [tool])
 
   return available
 }
 
 /**
- * Dynamic per-lesson registration — the provideContext/toolchange feature
+ * Dynamic per-lesson registration: the provideContext/toolchange feature
  * (A13). The toolset follows the lesson stage (matrix in toolsets.ts): lesson
  * 1 exposes only the minimal battery/resistor writes, remove_component and
  * add_note join in lessons 2-3, run_diagnosis appears from lesson 4 on, and
  * free build exposes everything.
  *
- * On every lesson change the diff is applied to the live model context —
- * tools that left the stage are unregistered, new ones registered — and the
- * browser then fires `toolchange`, so the agent sees the new toolset without
- * any page reload. Reads and navigation stay registered throughout; only the
- * write surface moves.
+ * On every lesson change the diff is applied to the live model context:
+ * tools that left the stage are unregistered (AbortSignal abort, see
+ * registerAndTrack), new ones registered, and the browser then fires
+ * `toolchange`, so the agent sees the new toolset without any page reload.
+ * Reads and navigation stay registered throughout; only the write surface
+ * moves.
  *
  * The effect keys on lessonId alone; the benchTools pool and the toolset
  * matrix are module-level, so the only trigger is a lesson change.
@@ -70,7 +96,7 @@ export function useLessonTools(): boolean {
   // Feature detection cannot change mid-session (document.modelContext is
   // SameObject per spec), so read it once at mount instead of in the effect.
   const [available] = useState(() => getModelContext() !== null)
-  const registeredRef = useRef<Map<string, ToolDefinition>>(new Map())
+  const registeredRef = useRef<Map<string, Unregister>>(new Map())
 
   useEffect(() => {
     const mc = getModelContext()
@@ -78,19 +104,15 @@ export function useLessonTools(): boolean {
     const registered = registeredRef.current
     const wanted = toolsetForLesson(lessonId, benchTools)
     const wantedNames = new Set(wanted.map((t) => t.name))
-    for (const name of [...registered.keys()]) {
+    for (const [name, unregister] of [...registered]) {
       if (!wantedNames.has(name)) {
-        // removeTool is optional in the draft spec; when it is missing the
-        // next registerTool of the same name overwrites the old definition.
-        mc.removeTool?.(name)
+        unregister()
         registered.delete(name)
       }
     }
     for (const tool of wanted) {
       if (!registered.has(tool.name)) {
-        // Wrapped: the chip activates during any per-lesson tool's execute.
-        mc.registerTool(withAgentPresence(tool))
-        registered.set(tool.name, tool)
+        registered.set(tool.name, registerAndTrack(mc, tool))
       }
     }
   }, [lessonId])
@@ -99,9 +121,7 @@ export function useLessonTools(): boolean {
   // behind on a model context the app no longer owns.
   useEffect(
     () => () => {
-      const mc = getModelContext()
-      if (!mc) return
-      for (const name of registeredRef.current.keys()) mc.removeTool?.(name)
+      for (const unregister of registeredRef.current.values()) unregister()
       registeredRef.current.clear()
     },
     [],

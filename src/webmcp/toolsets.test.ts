@@ -181,37 +181,101 @@ describe('useLessonTools dynamic registration', () => {
   const doc = document as unknown as Record<string, unknown>
   let savedDoc: unknown
 
+  /**
+   * Faithful emulation of real Chrome 151 semantics: ModelContext exposes
+   * registerTool / getTools / executeTool / ontoolchange and nothing else.
+   * There is NO removeTool method; a tool is unregistered when the
+   * AbortSignal passed as registerTool's second argument aborts. An earlier
+   * mock here shipped a removeTool vi.fn(), diverged from real Chrome, and
+   * hid a live toolset leak (wide -> narrow never narrowed on the deployed
+   * site). This mock must not provide removeTool either.
+   */
+  function faithfulChromeModelContext() {
+    const tools = new Map<string, ToolDefinition>()
+    const registerTool = vi.fn((tool: ToolDefinition, options?: { signal?: AbortSignal }) => {
+      tools.set(tool.name, tool)
+      options?.signal?.addEventListener('abort', () => {
+        if (tools.get(tool.name) === tool) tools.delete(tool.name)
+      })
+    })
+    return { tools, registerTool, names: () => [...tools.keys()].sort() }
+  }
+
   beforeEach(() => {
     savedDoc = doc.modelContext
   })
 
-  it('registers the lesson subset, then removes exactly the tools the new stage drops', () => {
-    const mc = { registerTool: vi.fn(), removeTool: vi.fn() }
+  it('narrowing unregisters exactly the tools the new stage drops (signal-based)', () => {
+    const mc = faithfulChromeModelContext()
     doc.modelContext = mc
     try {
       useBenchStore.getState().openLesson('diagnose-fault')
       const { unmount } = renderHook(() => useLessonTools())
 
-      const registered = mc.registerTool.mock.calls.map((c) => (c[0] as ToolDefinition).name)
-      expect(registered).toEqual(namesFor('diagnose-fault'))
+      expect(mc.names()).toEqual([...namesFor('diagnose-fault')].sort())
 
       const registersAfterMount = mc.registerTool.mock.calls.length
       act(() => {
         useBenchStore.getState().openLesson('ohms-law')
       })
 
-      const removed = mc.removeTool.mock.calls.map((c) => c[0])
       // Exactly the stage delta leaves; the shared read/nav/core tools stay.
-      expect(removed).toEqual(expect.arrayContaining(['remove_component', 'add_note', 'run_diagnosis']))
-      expect(removed).not.toContain('place_component')
-      expect(removed).not.toContain('describe_workbench')
+      expect(mc.names()).toEqual([...namesFor('ohms-law')].sort())
+      expect(mc.names()).not.toContain('remove_component')
+      expect(mc.names()).not.toContain('add_note')
+      expect(mc.names()).not.toContain('run_diagnosis')
+      expect(mc.names()).toContain('place_component')
+      expect(mc.names()).toContain('describe_workbench')
       // Diffing, not re-register-everything: no redundant registrations.
       expect(mc.registerTool.mock.calls.length).toBe(registersAfterMount)
 
       unmount()
       // Unmount clears the model context of everything the hook registered.
-      const removedAfterUnmount = mc.removeTool.mock.calls.map((c) => c[0])
-      expect(removedAfterUnmount).toEqual(expect.arrayContaining(READ_NAV))
+      expect(mc.names()).toEqual([])
+    } finally {
+      if (savedDoc !== undefined) doc.modelContext = savedDoc
+      else delete doc.modelContext
+    }
+  })
+
+  it('regression: the wide to narrow lesson cycle really shrinks the live toolset', () => {
+    // Mirrors the deployed bug: boot on lesson 1, open free-build (16 tools),
+    // then go back to ohms-law. On real Chrome this used to stay at 16
+    // because removeTool does not exist there; with signal-based
+    // unregistration the set must come back to the lesson 1 names.
+    const mc = faithfulChromeModelContext()
+    doc.modelContext = mc
+    try {
+      useBenchStore.getState().openLesson('ohms-law')
+      const { unmount } = renderHook(() => useLessonTools())
+      expect(mc.names()).toEqual([...namesFor('ohms-law')].sort())
+
+      act(() => {
+        useBenchStore.getState().openLesson('free-build')
+      })
+      expect(mc.names()).toEqual([...namesFor('free-build')].sort())
+
+      act(() => {
+        useBenchStore.getState().openLesson('ohms-law')
+      })
+      expect(mc.names()).toEqual([...namesFor('ohms-law')].sort())
+      expect(mc.names()).toEqual(
+        expect.arrayContaining(['place_component', 'connect', 'set_property', 'get_proposal_status']),
+      )
+      expect(mc.names()).toEqual(
+        expect.arrayContaining([
+          'describe_workbench',
+          'read_measurements',
+          'get_lesson_state',
+          'read_notes',
+          'check_answer',
+          'open_lesson',
+          'focus_component',
+        ]),
+      )
+
+      unmount()
+      expect(mc.names()).toEqual([])
     } finally {
       if (savedDoc !== undefined) doc.modelContext = savedDoc
       else delete doc.modelContext

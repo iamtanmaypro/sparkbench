@@ -69,6 +69,17 @@ export interface ToolDefinition {
 }
 
 /**
+ * Optional second argument of registerTool. Real Chrome 151 ships ModelContext
+ * with only registerTool / getTools / executeTool / ontoolchange: there is no
+ * removeTool method. Aborting this signal is the documented way to unregister
+ * a tool (the browser fires `toolchange` afterwards). Before Chrome 153 the
+ * abort also cancels in-flight executions of that tool.
+ */
+export interface ModelContextRegisterOptions {
+  signal?: AbortSignal
+}
+
+/**
  * Registration surface. Chrome 150+ exposes this on `document.modelContext`;
  * `navigator.modelContext` is the deprecated fallback we only feature-detect,
  * never rely on alone.
@@ -79,7 +90,12 @@ export interface ToolDefinition {
  * valid; call sites must feature-detect before subscribing.
  */
 export interface ModelContextRegistry {
-  registerTool(tool: ToolDefinition): void
+  registerTool(tool: ToolDefinition, options?: ModelContextRegisterOptions): void
+  /**
+   * Name-based removal per newer drafts only; real Chrome 151 does not ship
+   * it, so callers must never rely on it: register with an AbortSignal and
+   * abort to unregister (see useTool.ts registerAndTrack).
+   */
   removeTool?(name: string): void
   addEventListener?(
     type: string,

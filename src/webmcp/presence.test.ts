@@ -20,8 +20,14 @@ function fakeRegistry(): ModelContextRegistry & { tools: Map<string, ToolDefinit
   const tools = new Map<string, ToolDefinition>()
   return {
     tools,
-    registerTool: vi.fn((t: ToolDefinition) => tools.set(t.name, t)),
-    removeTool: vi.fn((name: string) => tools.delete(name)),
+    // Faithful to real Chrome 151: no removeTool method; the tool leaves the
+    // map when the registration AbortSignal aborts.
+    registerTool: vi.fn((t: ToolDefinition, options?: { signal?: AbortSignal }) => {
+      tools.set(t.name, t)
+      options?.signal?.addEventListener('abort', () => {
+        if (tools.get(t.name) === t) tools.delete(t.name)
+      })
+    }),
   }
 }
 
