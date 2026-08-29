@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Mission-session scratch (browser automation artifacts, not product code)
+.playwright-mcp/
+/*.png
