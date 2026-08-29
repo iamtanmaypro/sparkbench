@@ -27,6 +27,7 @@ import { Palette } from './Palette'
 import { LessonPanel } from './LessonPanel'
 import { Inspector } from './Inspector'
 import { NotesLayer } from './NotesLayer'
+import { ApprovalCard } from './ApprovalCard'
 
 const nodeTypes = { component: ComponentNode }
 const edgeTypes = { wire: WireEdge }
@@ -237,6 +238,7 @@ function WorkbenchInner() {
           <MiniMap pannable zoomable className="minimap" aria-label="Canvas minimap" />
         </ReactFlow>
         <NotesLayer />
+        <ApprovalCard />
       </main>
 
       <aside className="side-right">

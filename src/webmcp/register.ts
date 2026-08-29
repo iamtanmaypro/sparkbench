@@ -4,12 +4,14 @@
 //   pingTool    — Gate-1 health check, registered by WebMcpBanner
 //   readTools   — flat, always-available reads (readOnlyHint: true)
 //   navTools    — visible-UI navigation, no data mutation
+//   writeTools  — approvals.ts: proposal -> approval card -> execute on
+//                 Approve, plus add_note (auto-executes) and the
+//                 get_proposal_status read the agent awaits outcomes with
 //   benchTools  — the canonical registration list; App registers every entry
 //                 via useBenchTools, and budgets.test.ts lints everything here.
 //
-// Later Phase 3 features extend this file in place: the approval flow appends
-// writeTools (proposal -> card -> execute on Approve), and the dynamic-toolset
-// feature re-registers per-lesson subsets via provideContext/toolchange.
+// The dynamic-toolset feature re-registers per-lesson subsets of these arrays
+// via provideContext/toolchange (hook point: openLessonTool.execute).
 //
 // Rules every tool here follows:
 //   - Tools wrap Zustand store state/actions only (never engine internals or
@@ -24,6 +26,7 @@ import type { Component } from '../engine/netlist'
 import { componentDefaults } from '../engine/components'
 import { getLesson, lessonIndex, lessons } from '../lessons'
 import { noParams, openLessonParams, focusComponentParams } from './schemas'
+import { writeTools } from './approvals'
 import { boundedOutput, fits, round, aborted, ABORTED, MAX_OUTPUT_CHARS } from './output'
 
 /**
@@ -315,6 +318,5 @@ export const navTools: ToolDefinition[] = [openLessonTool, focusComponentTool]
 /**
  * Canonical registration list. App registers every entry once via
  * useBenchTools; budgets.test.ts lints every entry here plus pingTool.
- * Write tools (approval flow) append to this array.
  */
-export const benchTools: ToolDefinition[] = [...readTools, ...navTools]
+export const benchTools: ToolDefinition[] = [...readTools, ...navTools, ...writeTools]

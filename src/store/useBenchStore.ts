@@ -47,15 +47,15 @@ export type Origin = 'human' | 'agent'
  * Keeping the queue here means tools and UI wrap the same actions.
  */
 export type ProposalAction =
-  | { kind: 'place_component'; type: ComponentType; x?: number; y?: number }
+  | { kind: 'place_component'; type: ComponentType; x?: number; y?: number; value?: number }
   | { kind: 'connect'; from: Terminal; to: Terminal }
-  | { kind: 'set_property'; id: string; value: number }
+  | { kind: 'set_property'; id: string; property?: 'value' | 'closed'; value: number | boolean }
   | { kind: 'remove_component'; id: string }
 
 export interface Proposal {
   id: string
   action: ProposalAction
-  /** Card text, e.g. "Agent wants to: connect bat1+ to r1". */
+  /** Bare action phrase, e.g. "connect bat1:a to r1:a"; the approval card adds the "Agent wants to:" framing. */
   summary: string
   status: 'pending_approval' | 'approved' | 'rejected'
   createdAt: number
@@ -145,7 +145,7 @@ export interface BenchState {
   connectTerminals: (from: Terminal, to: Terminal, origin?: Origin) => string | null
   removeWire: (id: string) => void
   setProperty: (id: string, value: number, origin?: Origin) => void
-  toggleSwitch: (id: string) => void
+  toggleSwitch: (id: string, origin?: Origin) => void
   select: (id: string | null) => void
   openLesson: (id: string) => void
   nextHint: () => void
@@ -329,7 +329,7 @@ export const useBenchStore = create<BenchState>((set, get) => ({
     afterMutation(set, get, `${origin === 'agent' ? 'Agent set' : 'Set'} ${id} value to ${value}`, origin)
   },
 
-  toggleSwitch: (id) => {
+  toggleSwitch: (id, origin = 'human') => {
     let nowClosed = false
     set((s) => ({
       components: s.components.map((c) => {
@@ -338,7 +338,8 @@ export const useBenchStore = create<BenchState>((set, get) => ({
         return { ...c, closed: !c.closed }
       }),
     }))
-    afterMutation(set, get, `${nowClosed ? 'Closed' : 'Opened'} switch ${id}`, 'human')
+    const verb = nowClosed ? 'Closed' : 'Opened'
+    afterMutation(set, get, origin === 'agent' ? `Agent ${verb.toLowerCase()} switch ${id}` : `${verb} switch ${id}`, origin)
   },
 
   select: (id) => set({ selectedId: id }),
@@ -347,7 +348,16 @@ export const useBenchStore = create<BenchState>((set, get) => ({
     const lesson = getLesson(id)
     if (!lesson || get().currentLessonId === id) return
     const seeded = seedNetlist(lesson)
-    set({ ...seeded, currentLessonId: id, selectedId: null, origins: {}, hintsShown: 0 })
+    // Pending proposals referenced the old bench; drop them so no stale card
+    // survives the lesson switch. Decided ones stay for get_proposal_status.
+    set((s) => ({
+      ...seeded,
+      currentLessonId: id,
+      selectedId: null,
+      origins: {},
+      hintsShown: 0,
+      proposals: s.proposals.filter((p) => p.status !== 'pending_approval'),
+    }))
     afterMutation(set, get, `Opened ${lesson.title}`, 'human')
   },
 
@@ -507,15 +517,30 @@ export function getProposal(id: string): Proposal | undefined {
 function applyProposal(get: () => BenchState, action: ProposalAction): void {
   const s = get()
   switch (action.kind) {
-    case 'place_component':
-      s.addComponent(action.type, action.x !== undefined || action.y !== undefined ? { x: action.x ?? 120, y: action.y ?? 100 } : undefined, 'agent')
+    case 'place_component': {
+      const id = s.addComponent(
+        action.type,
+        action.x !== undefined || action.y !== undefined ? { x: action.x ?? 120, y: action.y ?? 100 } : undefined,
+        'agent',
+      )
+      // place_component's optional starting value lands through the same
+      // set_property path a later tuning proposal would take.
+      if (action.value !== undefined && action.value > 0) s.setProperty(id, action.value, 'agent')
       break
+    }
     case 'connect':
       s.connectTerminals(action.from, action.to, 'agent')
       break
-    case 'set_property':
-      s.setProperty(action.id, action.value, 'agent')
+    case 'set_property': {
+      if (action.property === 'closed') {
+        const c = s.components.find((x) => x.id === action.id)
+        // Idempotent: flip the switch only when the request disagrees with it.
+        if (c?.type === 'switch' && !!c.closed !== action.value) s.toggleSwitch(action.id, 'agent')
+      } else {
+        s.setProperty(action.id, Number(action.value), 'agent')
+      }
       break
+    }
     case 'remove_component':
       s.removeComponent(action.id, 'agent')
       break
