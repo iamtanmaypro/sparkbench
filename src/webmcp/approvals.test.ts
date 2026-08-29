@@ -216,7 +216,10 @@ describe('write-tool validation', () => {
       allowed_types: string[]
     }
     expect(out.status).toBe('error')
-    expect(out.allowed_types).toEqual(['battery', 'resistor', 'ammeter', 'voltmeter'])
+    // A13: the agent-facing palette in lesson 1 is the minimal
+    // battery/resistor write set, narrower than the human palette (which also
+    // offers the meters). See toolsets.ts placeTypesForLesson.
+    expect(out.allowed_types).toEqual(['battery', 'resistor'])
     expect(useBenchStore.getState().proposals).toHaveLength(0)
   })
 

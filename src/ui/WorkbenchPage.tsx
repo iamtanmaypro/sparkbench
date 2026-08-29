@@ -4,6 +4,7 @@
 
 import { AgentChip } from './AgentChip'
 import { ActionLog } from './ActionLog'
+import { LabReportForm } from './LabReportForm'
 import { Workbench } from './Workbench'
 import { useBenchStore } from '../store/useBenchStore'
 
@@ -26,6 +27,7 @@ export function WorkbenchPage() {
         <Workbench />
         <aside className="log-rail">
           <ActionLog />
+          <LabReportForm />
         </aside>
       </div>
     </div>

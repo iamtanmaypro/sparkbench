@@ -817,3 +817,85 @@ svg .led-rays line {
 .approval-batch-btn:hover {
   background: rgba(122, 162, 247, 0.1);
 }
+
+/* ---------- Lab Report (declarative WebMCP form, Phase 3) ---------- */
+.lab-report {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 13.5px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.lab-report label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.lab-report input,
+.lab-report textarea {
+  font: inherit;
+  font-size: 13px;
+  color: var(--text-h);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  resize: vertical;
+}
+
+.lab-report input:focus,
+.lab-report textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.lab-report button[type='submit'] {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+  background: rgba(122, 162, 247, 0.12);
+  border: 1px solid var(--agent);
+  border-radius: 6px;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+
+.lab-report button[type='submit']:hover {
+  background: rgba(122, 162, 247, 0.22);
+}
+
+.lab-report-done {
+  margin: 0;
+  color: var(--good);
+  font-size: 12.5px;
+}
+
+/* Chrome declarative WebMCP pseudo-classes: while an agent is filling the
+   form, the form matches :tool-form-active and its submit button matches
+   :tool-submit-active. Browsers that do not know the pseudo-classes drop
+   these rules, so each stands alone and simply does nothing until a runtime
+   ships them. The agent color makes "the agent is working" visible. */
+.lab-report:tool-form-active {
+  border-color: var(--agent);
+  box-shadow: 0 0 0 1px var(--agent), 0 0 16px rgba(122, 162, 247, 0.4);
+}
+
+.lab-report:tool-form-active button[type='submit']:tool-submit-active {
+  box-shadow: 0 0 0 2px var(--agent), 0 0 12px rgba(122, 162, 247, 0.55);
+}
+
+/* JS mirror for runtimes that fire toolactivated before shipping the
+   pseudo-class: LabReportForm toggles this class on the same conditions. */
+.lab-report.tool-form-live {
+  border-color: var(--agent);
+  box-shadow: 0 0 0 1px var(--agent), 0 0 16px rgba(122, 162, 247, 0.4);
+}

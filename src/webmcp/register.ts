@@ -7,11 +7,15 @@
 //   writeTools  — approvals.ts: proposal -> approval card -> execute on
 //                 Approve, plus add_note (auto-executes) and the
 //                 get_proposal_status read the agent awaits outcomes with
-//   benchTools  — the canonical registration list; App registers every entry
-//                 via useBenchTools, and budgets.test.ts lints everything here.
+//   diagnosisTools — diagnosis.ts: run_diagnosis, which the dynamic toolset
+//                 registers only in lessons 4+
+//   benchTools  — the canonical POOL of every tool that can ever be
+//                 registered; budgets.test.ts lints everything here.
 //
-// The dynamic-toolset feature re-registers per-lesson subsets of these arrays
-// via provideContext/toolchange (hook point: openLessonTool.execute).
+// The dynamic-toolset feature re-registers per-lesson subsets of this pool
+// via provideContext-style re-registration: the matrix lives in toolsets.ts
+// and useLessonTools (useTool.ts) applies it on every lesson change, after
+// which the browser fires `toolchange` so agents see the new toolset.
 //
 // Rules every tool here follows:
 //   - Tools wrap Zustand store state/actions only (never engine internals or
@@ -27,6 +31,7 @@ import { componentDefaults } from '../engine/components'
 import { getLesson, lessonIndex, lessons } from '../lessons'
 import { noParams, openLessonParams, focusComponentParams } from './schemas'
 import { writeTools } from './approvals'
+import { diagnosisTools } from './diagnosis'
 import { boundedOutput, fits, round, aborted, ABORTED, MAX_OUTPUT_CHARS } from './output'
 
 /**
@@ -261,8 +266,9 @@ export const openLessonTool: ToolDefinition = {
         available_lessons: lessons.map((l) => l.id),
       }
     }
-    // Dynamic-toolset hook point: per-lesson registration (provideContext /
-    // toolchange) re-runs around this store action; see the toolset feature.
+    // Dynamic-toolset hook: useLessonTools subscribes to currentLessonId, so
+    // this store action is what makes the per-lesson subset swap happen (the
+    // toolset matrix itself lives in toolsets.ts).
     const alreadyOpen = useBenchStore.getState().currentLessonId === id
     if (!alreadyOpen) useBenchStore.getState().openLesson(id)
     return {
@@ -316,7 +322,8 @@ export const readTools: ToolDefinition[] = [
 export const navTools: ToolDefinition[] = [openLessonTool, focusComponentTool]
 
 /**
- * Canonical registration list. App registers every entry once via
- * useBenchTools; budgets.test.ts lints every entry here plus pingTool.
+ * Canonical pool of every tool that can ever be registered. budgets.test.ts
+ * lints every entry here plus pingTool; useLessonTools registers the
+ * per-lesson subset of this list (see toolsets.ts for the matrix).
  */
-export const benchTools: ToolDefinition[] = [...readTools, ...navTools, ...writeTools]
+export const benchTools: ToolDefinition[] = [...readTools, ...navTools, ...writeTools, ...diagnosisTools]

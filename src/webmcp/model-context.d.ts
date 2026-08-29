@@ -6,6 +6,32 @@
  * ChatGPT's browser. We only type the slice Sparkbench uses.
  */
 
+/**
+ * Declarative WebMCP form attributes (declarative-api-explainer.md): a plain
+ * <form toolname=... tooldescription=...> is exposed to agents as a tool, and
+ * each form control's `toolparamdescription` becomes that parameter's schema
+ * description. `toolautosubmit` is deliberately never set by us (state-changing
+ * form => the human submits); it is typed here only so its absence stays a
+ * choice, not a type error waiting to happen.
+ *
+ * These augment React's module-scope attribute interfaces (which is what
+ * JSX.IntrinsicElements references in React 19), so no extends clauses here:
+ * augmentation merging requires them to match the original declarations.
+ */
+declare module 'react' {
+  interface FormHTMLAttributes<T> {
+    toolname?: string
+    tooldescription?: string
+    toolautosubmit?: boolean | 'true' | 'false'
+  }
+  interface InputHTMLAttributes<T> {
+    toolparamdescription?: string
+  }
+  interface TextareaHTMLAttributes<T> {
+    toolparamdescription?: string
+  }
+}
+
 interface ModelContextToolResultContent {
   type: string
   text?: string
@@ -46,10 +72,25 @@ export interface ToolDefinition {
  * Registration surface. Chrome 150+ exposes this on `document.modelContext`;
  * `navigator.modelContext` is the deprecated fallback we only feature-detect,
  * never rely on alone.
+ *
+ * The real ModelContext is an EventTarget (the spec fires `toolchange` after
+ * registration changes and `toolactivated`/`toolcanceled` around declarative
+ * form use), but the listeners are typed optional so partial test fakes stay
+ * valid; call sites must feature-detect before subscribing.
  */
 export interface ModelContextRegistry {
   registerTool(tool: ToolDefinition): void
   removeTool?(name: string): void
+  addEventListener?(
+    type: string,
+    listener: EventListenerOrEventListenerObject | null,
+    options?: boolean | AddEventListenerOptions,
+  ): void
+  removeEventListener?(
+    type: string,
+    listener: EventListenerOrEventListenerObject | null,
+    options?: boolean | EventListenerOptions,
+  ): void
 }
 
 interface DocumentWithModelContext extends Document {

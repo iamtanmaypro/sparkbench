@@ -18,7 +18,7 @@ import type { ToolDefinition, ModelContextToolCallOptions } from './model-contex
 import { useBenchStore } from '../store/useBenchStore'
 import type { ProposalAction } from '../store/useBenchStore'
 import type { ComponentType, Terminal } from '../engine/netlist'
-import { getLesson } from '../lessons'
+import { placeTypesForLesson } from './toolsets'
 import { aborted, ABORTED } from './output'
 import {
   placeComponentParams,
@@ -100,7 +100,10 @@ export const placeComponentTool: ToolDefinition = {
     if (typeof type !== 'string') {
       return { status: 'error', message: 'Pass the component type to place.' }
     }
-    const allowed = getLesson(s.currentLessonId)?.allowedComponents ?? []
+    // Agent-facing palette for the current lesson stage (toolsets.ts). It is
+    // narrower than the human palette in lesson 1 by design: the toolset, not
+    // a lesson edit, decides what the agent may place.
+    const allowed = placeTypesForLesson(s.currentLessonId)
     if (!allowed.includes(type as ComponentType)) {
       return {
         status: 'error',
