@@ -20,10 +20,10 @@
   "successPredicate": {
     "kind": "all",
     "of": [
-      { "kind": "bulb_lit", "component": "bulb1" },
-      { "kind": "bulb_lit", "component": "bulb2" },
-      { "kind": "voltage_within", "component": "bulb1", "min": 2.5, "max": 3.5 },
-      { "kind": "voltage_within", "component": "bulb2", "min": 2.5, "max": 3.5 }
+      { "kind": "bulb_lit", "n": 1 },
+      { "kind": "bulb_lit", "n": 2 },
+      { "kind": "voltage_within", "type": "bulb", "n": 1, "min": 2.5, "max": 3.5 },
+      { "kind": "voltage_within", "type": "bulb", "n": 2, "min": 2.5, "max": 3.5 }
     ]
   },
   "hints": [

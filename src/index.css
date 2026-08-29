@@ -109,6 +109,10 @@ h1 {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 280px;
   gap: 12px;
+  /* start: the log rail must never stretch this row taller than the canvas
+     (its content grows with the log, which used to push the lab report below
+     the fold and scroll the whole page). */
+  align-items: start;
 }
 
 /* ---------- Workbench layout ---------- */
@@ -128,6 +132,28 @@ h1 {
   gap: 10px;
   min-height: 0;
   overflow-y: auto;
+}
+
+/* The rail scrolls internally, capped to the same viewport budget as
+   .workbench, so the whole app fits one screen and the lab report stays
+   reachable without scrolling the page. */
+.log-rail {
+  max-height: calc(100vh - 130px);
+}
+
+/* Inside the rail the log is the flexible citizen: it yields its height so
+   the hint panel and the lab report stay visible, and scrolls its own list
+   when there are many entries. */
+.log-rail > .action-log {
+  flex: 1 1 auto;
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+}
+
+.log-rail > .action-log > .panel-title,
+.log-rail > .action-log > .muted {
+  flex-shrink: 0;
 }
 
 .canvas-wrap {
@@ -383,7 +409,8 @@ h1 {
   list-style: none;
   margin: 0;
   padding: 0;
-  max-height: 40vh;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
 }
 
@@ -428,10 +455,14 @@ h1 {
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 5px 14px;
+  /* Smooth the idle -> working -> waiting flips; they happen live on camera
+     during the demo's approval-card moment. */
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
 .agent-chip.active {
   border-color: var(--agent);
+  box-shadow: 0 0 10px rgba(122, 162, 247, 0.35);
 }
 
 .agent-chip.waiting {
@@ -536,6 +567,12 @@ h1 {
   }
   .comp-node.focus-pulse .comp-body {
     animation: none;
+  }
+  .approval-card {
+    animation: none;
+  }
+  .agent-chip {
+    transition: none;
   }
 }
 
@@ -755,6 +792,18 @@ svg .led-rays line {
   padding: 8px 10px;
   font-size: 12.5px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  animation: approval-in 160ms ease-out;
+}
+
+@keyframes approval-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .approval-head {
@@ -1035,6 +1084,37 @@ svg .led-rays line {
   border-color: var(--agent);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(2px);
+}
+
+/* ---------- Narrow windows ---------- */
+/* The canvas is the product; fixed side columns must never crush it (at 900px
+   the 230+260+280 of fixed columns left a 66px-wide canvas). */
+@media (max-width: 1180px) {
+  .workbench {
+    grid-template-columns: 180px minmax(0, 1fr) 220px;
+  }
+  .workbench-row {
+    grid-template-columns: minmax(0, 1fr) 250px;
+  }
+}
+
+@media (max-width: 940px) {
+  /* Stack everything in one column: palette, canvas, inspector, then the log
+     rail below. The rail gives up its one-screen cap; the page scrolls. */
+  .workbench {
+    height: auto;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .workbench-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .log-rail {
+    max-height: none;
+  }
+  .canvas-wrap {
+    height: 56vh;
+    min-height: 380px;
+  }
 }
 
 /* ---------- Keyboard operability (A16) ---------- */

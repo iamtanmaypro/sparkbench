@@ -118,10 +118,13 @@ export const describeWorkbenchTool: ToolDefinition = {
     }
     if (fits(full) <= MAX_OUTPUT_CHARS) return full
 
-    // Over budget: drop layout coordinates before dropping components.
+    // Over budget: drop layout coordinates before dropping components. The
+    // layout_omitted flag is measured as part of the payload, never appended
+    // after the check: ~23 unmeasured chars could push a near-limit compact
+    // payload back over the 1.5K budget (truncation edge found in Gate 2 prep).
     const lite = s.components.map((c) => summarizeComponent(c, posOf.get(c.id), true))
-    const compact = { ...header, components: lite, connections }
-    if (fits(compact) <= MAX_OUTPUT_CHARS) return { ...compact, layout_omitted: true }
+    const compact = { ...header, components: lite, connections, layout_omitted: true }
+    if (fits(compact) <= MAX_OUTPUT_CHARS) return compact
     return boundedOutput(header, { key: 'components', items: lite }, { key: 'connections', items: connections })
   },
 }

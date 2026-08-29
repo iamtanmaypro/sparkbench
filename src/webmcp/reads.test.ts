@@ -8,6 +8,7 @@ import {
   checkAnswerTool,
 } from './register'
 import type { Terminal } from '../engine/netlist'
+import { MAX_OUTPUT_CHARS } from './output'
 
 /**
  * A09: read tools return correct grounded data against seeded store states —
@@ -59,6 +60,43 @@ describe('describe_workbench', () => {
     expect(out.components.find((c) => c.id === 'r1')?.value).toBe(100)
     expect(out.connections).toContain('bat1:a -> r1:a')
     expect(out.connections).toContain('r1:b -> bat1:b')
+  })
+
+  it('keeps every compaction step inside the 1.5K budget as the bench grows', async () => {
+    // Gate 2 truncation edge: the layout-omitted step used to append its flag
+    // AFTER the budget check, so a near-limit compact payload could slip past
+    // 1.5K by the flag's own length. Grow the bench through both compaction
+    // steps (drop coordinates, then trim rows) and hold the line at every size.
+    const add = () => useBenchStore.getState().addComponent('resistor', { x: 40, y: 40 })
+    let sawLayoutOmitted = false
+    let sawTrimmed = false
+    for (let i = 0; i < 70; i++) {
+      // Varying value digit-lengths shifts row size so the sweep crosses the
+      // budget boundary at several different offsets, not just one.
+      if (i % 7 === 3) useBenchStore.getState().setProperty(useBenchStore.getState().components.at(-1)!.id, 10 ** (i % 5))
+      add()
+      const out = (await describeWorkbenchTool.execute({}, {})) as {
+        components: { id: string; x?: number; y?: number }[]
+        layout_omitted?: boolean
+        truncated?: boolean
+        components_total?: number
+      }
+      const raw = JSON.stringify(out)
+      expect(raw.length).toBeLessThanOrEqual(MAX_OUTPUT_CHARS)
+      if (out.layout_omitted) {
+        sawLayoutOmitted = true
+        // The step that names itself must actually have dropped the layout.
+        expect(out.components.every((c) => c.x === undefined && c.y === undefined)).toBe(true)
+      }
+      if (out.truncated) {
+        sawTrimmed = true
+        expect(out.components_total).toBe(useBenchStore.getState().components.length)
+        expect(out.components.length).toBeLessThan(out.components_total!)
+      }
+    }
+    // Both compaction steps were genuinely exercised by the sweep.
+    expect(sawLayoutOmitted).toBe(true)
+    expect(sawTrimmed).toBe(true)
   })
 })
 

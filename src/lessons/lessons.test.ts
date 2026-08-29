@@ -1,10 +1,12 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { lessons, getLesson, FREE_BUILD_LESSON_ID } from './index'
 import { validateLesson } from './schema'
 import type { Predicate } from './schema'
 import { solve } from '../engine/solver'
 import { detectFaults } from '../engine/faults'
 import { evaluatePredicate } from './predicates'
+import { useBenchStore } from '../store/useBenchStore'
+import type { Terminal } from '../engine/netlist'
 
 // A06: all 5 lessons load from JSON with goal, initial netlist, allowed
 // components, success predicate, hints; lesson 4 ships pre-broken circuits;
@@ -181,6 +183,52 @@ describe('predicate evaluation', () => {
     const res = evaluatePredicate(p, dark)
     expect(res.passed).toBe(false)
     expect(res.failures).toHaveLength(2)
+  })
+})
+
+describe('fix paths survive component replacement (Gate 2 demo beats)', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('lesson 4: replacing the burned LED with a fresh one completes the goal', () => {
+    // The lesson's own hint is "delete led1, place a fresh one": the goal must
+    // track the LED by type, not by the dead part's id, or the lesson can
+    // never pass. Driven through the store exactly as the demo will run it.
+    useBenchStore.getState().openLesson('diagnose-fault')
+    expect(useBenchStore.getState().predicate.passed).toBe(false)
+
+    const s = useBenchStore.getState()
+    s.removeComponent('led1')
+    const fresh = useBenchStore.getState().addComponent('led', { x: 700, y: 220 })
+    useBenchStore.getState().connectTerminals('r1:b' as Terminal, `${fresh}:a` as Terminal)
+    useBenchStore.getState().connectTerminals(`${fresh}:b` as Terminal, 'bat1:b' as Terminal)
+
+    const after = useBenchStore.getState()
+    expect(after.predicate.failures).toEqual([])
+    expect(after.predicate.passed).toBe(true)
+  })
+
+  it('lesson 2: the agent path (replace bulb2, rewire parallel) completes the goal', () => {
+    // The agent cannot delete a single wire, so its parallel rewire removes
+    // bulb2 (its wires go with it) and re-places a fresh bulb under a new id.
+    // The goal must survive the replacement.
+    useBenchStore.getState().openLesson('series-parallel')
+    const s = useBenchStore.getState()
+    s.toggleSwitch('sw1')
+    // Seeded series state: both bulbs glow dim, but each drops only ~1.5V.
+    expect(useBenchStore.getState().predicate.passed).toBe(false)
+
+    s.removeComponent('bulb2')
+    const s1 = useBenchStore.getState()
+    const fresh = s1.addComponent('bulb', { x: 480, y: 330 })
+    s1.connectTerminals('bulb1:b' as Terminal, 'bat1:b' as Terminal)
+    s1.connectTerminals('sw1:b' as Terminal, `${fresh}:a` as Terminal)
+    s1.connectTerminals(`${fresh}:b` as Terminal, 'bat1:b' as Terminal)
+
+    const after = useBenchStore.getState()
+    expect(after.predicate.failures).toEqual([])
+    expect(after.predicate.passed).toBe(true)
   })
 })
 

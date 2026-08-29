@@ -30,10 +30,10 @@ export interface LessonWireSpec {
  */
 export type Predicate =
   | { kind: 'all' | 'any'; of: Predicate[] }
-  | { kind: 'led_lit'; component?: string }
-  | { kind: 'bulb_lit'; component?: string }
-  | { kind: 'current_within'; component?: string; type?: ComponentType; min: number; max: number }
-  | { kind: 'voltage_within'; component?: string; type?: ComponentType; min: number; max: number }
+  | { kind: 'led_lit'; component?: string; n?: number }
+  | { kind: 'bulb_lit'; component?: string; n?: number }
+  | { kind: 'current_within'; component?: string; type?: ComponentType; n?: number; min: number; max: number }
+  | { kind: 'voltage_within'; component?: string; type?: ComponentType; n?: number; min: number; max: number }
   | { kind: 'count_at_least'; type?: ComponentType; count: number }
   | { kind: 'switch_closed'; component: string }
   | { kind: 'no_faults' }
@@ -113,11 +113,17 @@ export function validatePredicate(p: unknown, depth = 0): string[] {
       return pred.of.flatMap((child) => validatePredicate(child, depth + 1))
     case 'led_lit':
     case 'bulb_lit':
+      // n is an optional 1-based index into "components of this type", used
+      // when the goal targets the Nth part rather than one fixed id.
+      if (pred.n !== undefined && (!Number.isInteger(pred.n) || pred.n < 1))
+        return [`${pred.kind}: n must be a positive integer`]
       return []
     case 'current_within':
     case 'voltage_within':
       if (!pred.component && !pred.type) return [`${pred.kind}: needs "component" or "type"`]
       if (typeof pred.min !== 'number' || typeof pred.max !== 'number') return [`${pred.kind}: min/max must be numbers`]
+      if (pred.n !== undefined && (!Number.isInteger(pred.n) || pred.n < 1))
+        return [`${pred.kind}: n must be a positive integer`]
       return []
     case 'count_at_least':
       if (typeof pred.count !== 'number') return ['count_at_least: count must be a number']

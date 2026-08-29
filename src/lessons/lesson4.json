@@ -20,8 +20,8 @@
   "successPredicate": {
     "kind": "all",
     "of": [
-      { "kind": "led_lit", "component": "led1" },
-      { "kind": "current_within", "component": "led1", "min": 0.001, "max": 0.025 },
+      { "kind": "led_lit" },
+      { "kind": "current_within", "type": "led", "min": 0.001, "max": 0.025 },
       { "kind": "no_faults" }
     ]
   },

@@ -19,9 +19,16 @@ export interface PredicateResult {
   failures: string[]
 }
 
-function findComponent(ctx: PredicateContext, id?: string, type?: ComponentType) {
+function findComponent(ctx: PredicateContext, id?: string, type?: ComponentType, n?: number) {
   if (id !== undefined) return ctx.components.find((c) => c.id === id)
-  return ctx.components.find((c) => c.type === type)
+  if (type !== undefined) {
+    // Type-based targets survive the component being deleted and replaced
+    // with a fresh part (lesson 4's fix is exactly that): pick the nth of the
+    // type (1-based) instead of a fixed id.
+    const matches = ctx.components.filter((c) => c.type === type)
+    return matches[(n ?? 1) - 1]
+  }
+  return undefined
 }
 
 /** True when the LED/bulb is actually emitting: intact and dissipating light. */
@@ -38,11 +45,7 @@ function evaluateLeaf(p: Predicate, ctx: PredicateContext): PredicateResult {
     case 'bulb_lit': {
       const target =
         p.component ??
-        (() => {
-          const type: ComponentType = p.kind === 'led_lit' ? 'led' : 'bulb'
-          const found = ctx.components.find((c) => c.type === type)
-          return found?.id
-        })()
+        findComponent(ctx, undefined, p.kind === 'led_lit' ? 'led' : 'bulb', p.n)?.id
       if (!target)
         return { passed: false, failures: [`no ${p.kind === 'led_lit' ? 'LED' : 'bulb'} on the bench yet`] }
       return isLit(ctx, target)
@@ -51,7 +54,7 @@ function evaluateLeaf(p: Predicate, ctx: PredicateContext): PredicateResult {
     }
     case 'current_within':
     case 'voltage_within': {
-      const comp = findComponent(ctx, p.component, p.type)
+      const comp = findComponent(ctx, p.component, p.type, p.n)
       if (!comp)
         return { passed: false, failures: [`no ${p.type ?? p.component} to measure yet`] }
       const r = ctx.solution.readings[comp.id]
