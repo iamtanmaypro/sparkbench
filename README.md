@@ -65,8 +65,8 @@ Dismiss the banner and use the whole product with the mouse: palette, canvas, wi
 
 These three are also on the app's own hint panel:
 
-- `What is the exact current through each part right now?` (any lesson; the numbers exist only in the solver, so `read_measurements` is the only way to answer)
-- `Rewire this so both bulbs are bright, asking me before each change` (Lesson 2; drives `place_component`/`connect` and stacks approval cards)
+- `Rewire this so both bulbs are bright, and ask me before each change` (Lesson 2. The canvas exposes no way to drag a wire programmatically, so this is only possible through the tools; every step stacks an approval card. Series reads 1.49 V per bulb, parallel reads 2.90 V, which is 3.8x the power.)
+- `Open free build and make a voltage divider that outputs exactly 1.00 V` (Lesson 5. Textbook 200/100 ohms gives 0.9983 V because the battery has 0.5 ohms of internal resistance. Only measuring reveals that, so the agent has to place, wire, read, correct to 199.5 ohms, and re-read.)
 - `Open lesson 4 and diagnose the dead part from the readings` (Lesson 4 ships a burned LED; drives `open_lesson` then `run_diagnosis`)
 
 And the full-tour prompt from the demo: `Teach me series vs parallel. Switch me to lesson 2, explain the seeded circuit, then rebuild it so the two bulbs are in parallel and both glow bright. Propose each change to me and wait for my approval.`

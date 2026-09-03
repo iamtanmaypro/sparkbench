@@ -15,9 +15,15 @@ import { useState } from 'react'
 // tools) takes the cheapest path, so a "what do you see" prompt gets answered
 // from the rendered canvas and no tool ever runs. Ask for what only the tools
 // return and the tool path wins on merit.
+// Each prompt needs a tool the screen cannot substitute for: a rewire (the
+// canvas has no DOM affordance to drag a wire), a closed loop of place ->
+// measure -> adjust against solver ground truth, and a cause-with-evidence
+// diagnosis. A "what do you see" prompt gets answered from the canvas and
+// runs no tool at all, which is correct hybrid-agent behavior, so we do not
+// advertise one.
 export const EXAMPLE_PROMPTS = [
-  'What is the exact current through each part right now?',
-  'Rewire this so both bulbs are bright, asking me before each change',
+  'Rewire this so both bulbs are bright, and ask me before each change',
+  'Open free build and make a voltage divider that outputs exactly 1.00 V',
   'Open lesson 4 and diagnose the dead part from the readings',
 ] as const
 
