@@ -97,7 +97,7 @@ function summarizeComponent(
 export const describeWorkbenchTool: ToolDefinition = {
   name: 'describe_workbench',
   description:
-    'Get a compact summary of the electronics bench: every component with its id, type and value, plus how terminals are wired together. Call this first to ground yourself before reading measurements or suggesting changes.',
+    'Get a compact summary of the electronics bench: every component with its id, type and value, plus how terminals are wired together. The canvas is a rendered simulation, so looking at the screen gives shapes at best: this tool is the only source of exact ids, values and terminal-level wiring. Call it first to ground yourself before reading measurements or suggesting changes.',
   annotations: {
     readOnlyHint: true,
     openWorldHint: false,
@@ -132,7 +132,7 @@ export const describeWorkbenchTool: ToolDefinition = {
 export const readMeasurementsTool: ToolDefinition = {
   name: 'read_measurements',
   description:
-    'Read the live simulation: voltage across, current through, and power in each component, plus fault flags (short circuit, open circuit, LED burnout, blown fuse). Use it after any wiring change to see what the circuit really does.',
+    'Read the live simulation: voltage across, current through, and power in each component, plus fault flags (short circuit, open circuit, LED burnout, blown fuse). The screen only renders brightness and one headline fault, so these solver numbers are the only exact readings available. Use it after any wiring change to see what the circuit really does.',
   annotations: {
     readOnlyHint: true,
     openWorldHint: false,
@@ -226,7 +226,7 @@ export const readNotesTool: ToolDefinition = {
 export const checkAnswerTool: ToolDefinition = {
   name: 'check_answer',
   description:
-    "Check the student's circuit against the current lesson goal. Returns pass or fail with the specific failing checks. It never reveals the full solution, so you can coach without giving the answer away.",
+    "Check the student's circuit against the current lesson goal. Returns pass or fail with the specific failing checks, which the lesson panel never lists on screen. It never reveals the full solution, so you can coach without giving the answer away.",
   annotations: {
     readOnlyHint: true,
     openWorldHint: false,

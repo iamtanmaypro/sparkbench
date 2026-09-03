@@ -58,11 +58,13 @@ Where: ChatGPT's in-app browser on the live app, one continuous session from
 the deeplink. Follow docs/gate2-chatgpt-demo.md Steps 0 to 3. Prompts to type,
 in order:
 
-1. `Open my electronics workbench and tell me what tools you can see there.`
+1. `What is the exact current through each part right now?` (never a "what do
+   you see" prompt: the agent would answer from the canvas and call no tool.
+   See gate2-chatgpt-demo.md Step 0.)
 2. `Teach me series vs parallel. Switch me to lesson 2, explain the seeded circuit, then rebuild it so the two bulbs are in parallel and both glow bright. Propose each change to me and wait for my approval.`
 3. (Hand break) delete the wire between the bulbs, then:
-   `Why are the bulbs dark now?`
-4. `Open lesson 4 and figure out why the LED is dark. Leave me a note about it.`
+   `Why are the bulbs dark now? Use the readings, not the picture.`
+4. `Open lesson 4 and diagnose the dead part from the readings. Leave me a note about it.`
 5. (Hand fix) delete the burned LED, place a fresh one from the palette, wire
    it in series after r1, then: `Check my work.`
 6. `Fill in the lab report for me: name Tanmay, what I built: the lesson 2 parallel bulbs circuit, observed vs expected: in series both bulbs were dim, in parallel both glow bright.`

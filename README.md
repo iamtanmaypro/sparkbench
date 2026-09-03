@@ -39,7 +39,9 @@ Before anything: open the live URL in a normal tab and click **Reset bench** in 
    ```
 
    If the deeplink does not open the page, paste the plain URL into the conversation and ask ChatGPT to open it in its browser. Either path counts.
-2. Type: `Open my electronics workbench and tell me what tools you can see there.` Expect the agent to call `ping_workbench`, then `describe_workbench`, and list the bench: 5 lessons, a battery and a resistor on it.
+2. Type: `What is the exact current through each part right now?` Expect the agent to call `describe_workbench` and `read_measurements`, then quote real numbers (amps to several decimals) that are nowhere on screen.
+
+   Why this prompt and not "what do you see": ChatGPT's in-app browser is a hybrid agent. It can read the rendered page AND call our tools, and it takes the cheapest path that answers the question. Ask it what is on the bench and it will read the canvas and skip the tools, which is correct behavior and not a WebMCP failure. Ask for exact values or for a change, and the tool path wins on merit. Every prompt below is built that way.
 3. Type: `Teach me series vs parallel. Switch me to lesson 2, explain the seeded circuit, then rebuild it so the two bulbs are in parallel and both glow bright. Propose each change to me and wait for my approval.` Approve the first card explicitly, then use **Approve next N** for the rest. End state: both bulbs bright and the lesson panel reads **Goal complete. Nice work.**
 4. Break the circuit by hand (delete a wire), then type: `Why are the bulbs dark now?` Then open lesson 4 via `Open lesson 4 and figure out why the LED is dark. Leave me a note about it.` The agent runs `run_diagnosis`, names the burned LED, and leaves a signed note; the fix itself comes back as `needs_human`, which is the designed behavior. You replace the LED, then type `Check my work.` to see `check_answer` pass.
 5. Type: `Fill in the lab report for me...` and watch the form glow while the agent fills it; you press **Submit report**.
@@ -63,9 +65,9 @@ Dismiss the banner and use the whole product with the mouse: palette, canvas, wi
 
 These three are also on the app's own hint panel:
 
-- `What is wrong with my circuit?` (open Lesson 4 first; the bench ships with a burned LED)
-- `Build me a voltage divider` (Lesson 5, free build, full toolset)
-- `Why is the LED dark?` (Lesson 4; the honest answer reads the meters, not a guess)
+- `What is the exact current through each part right now?` (any lesson; the numbers exist only in the solver, so `read_measurements` is the only way to answer)
+- `Rewire this so both bulbs are bright, asking me before each change` (Lesson 2; drives `place_component`/`connect` and stacks approval cards)
+- `Open lesson 4 and diagnose the dead part from the readings` (Lesson 4 ships a burned LED; drives `open_lesson` then `run_diagnosis`)
 
 And the full-tour prompt from the demo: `Teach me series vs parallel. Switch me to lesson 2, explain the seeded circuit, then rebuild it so the two bulbs are in parallel and both glow bright. Propose each change to me and wait for my approval.`
 

@@ -1452,6 +1452,15 @@ svg .led-rays line {
   margin-bottom: 8px;
 }
 
+/* Agent tip: guidance aimed at the visitor's agent, deliberately kept visible
+   to humans too (never hidden text), so the page steers agents honestly. */
+.agent-tip {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+  line-height: 1.45;
+}
+
 .prompt-list {
   list-style: none;
   margin: 0 0 8px;

@@ -9,10 +9,16 @@
 
 import { useState } from 'react'
 
+// Prompts are chosen so the screen CANNOT answer them: exact solver numbers,
+// a mutation that needs approval, and a cause-with-evidence diagnosis. A
+// hybrid agent (ChatGPT's in-app browser can both see the page and call our
+// tools) takes the cheapest path, so a "what do you see" prompt gets answered
+// from the rendered canvas and no tool ever runs. Ask for what only the tools
+// return and the tool path wins on merit.
 export const EXAMPLE_PROMPTS = [
-  'What is wrong with my circuit?',
-  'Build me a voltage divider',
-  'Why is the LED dark?',
+  'What is the exact current through each part right now?',
+  'Rewire this so both bulbs are bright, asking me before each change',
+  'Open lesson 4 and diagnose the dead part from the readings',
 ] as const
 
 export function HintPanel({ variant = 'rail' }: { variant?: 'rail' | 'canvas' }) {
@@ -72,6 +78,11 @@ export function HintPanel({ variant = 'rail' }: { variant?: 'rail' | 'canvas' })
       </ul>
       <p className="muted small" role="status">
         {copiedIdx !== null ? 'Prompt copied. Paste it into your agent.' : 'Click a prompt to copy it for your agent.'}
+      </p>
+      <p className="muted small agent-tip">
+        Agent tip: this bench exposes WebMCP tools. The canvas is a rendered
+        simulation, so ask for exact readings or for changes and your agent
+        will call the tools instead of reading the screen.
       </p>
     </section>
   )

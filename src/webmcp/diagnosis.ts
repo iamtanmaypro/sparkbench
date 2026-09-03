@@ -21,7 +21,7 @@ const FIRST_DIAGNOSIS_INDEX = 3
 export const runDiagnosisTool: ToolDefinition = {
   name: 'run_diagnosis',
   description:
-    'Start guided fault diagnosis: the canvas jumps to the first suspect part and you get an ordered probe list naming what to check, what is wrong, and the fix to suggest. Use it when the student asks why their circuit misbehaves or a meter reads zero.',
+    'Start guided fault diagnosis: the canvas jumps to the first suspect part and you get an ordered probe list naming what to check, what is wrong, and the fix to suggest. The screen shows a symptom; this returns the cause and the readings that prove it. Use it when the student asks why their circuit misbehaves or a meter reads zero.',
   annotations: {
     // Drives visible UI (focus/highlight), never circuit data.
     readOnlyHint: false,

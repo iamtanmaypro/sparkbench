@@ -34,6 +34,7 @@ I built it with a boring stack on purpose: Vite, TypeScript, React, React Flow f
 - Registration against document.modelContext, the current API, with a feature-detected navigator.modelContext fallback. Most tutorials still teach the deprecated path alone.
 - Dynamic per-lesson toolsets via provideContext and toolchange: lesson 1 exposes a minimal set, lesson 2 adds removal and notes, lessons 4 and up add run_diagnosis, and free build unlocks everything. The toolset visibly follows the lesson.
 - A read, navigation, and write taxonomy with correct hints: readOnlyHint on all reads, untrustedContentHint on user-authored notes, destructiveHint on removal, and navigation flagged honestly as non-mutating.
+- Tools written to beat the screen. ChatGPT's in-app browser is a hybrid agent: it can read the rendered page and it can call my tools, and it takes the cheapest path that answers the question. Ask it what is on the bench and it will read the canvas, correctly, without touching a tool. So every tool here returns what looking cannot produce: exact solver values, terminal-level wiring, the specific failing lesson checks, the cause behind a visible symptom. Designing for that competition, rather than assuming an agent will call a tool just because it exists, is the part of WebMCP work that only shows up once you test in a real runtime.
 - Character budgets respected and enforced by a test (names 30 or fewer, descriptions 500 or fewer, parameter descriptions 150 or fewer, outputs 1.5K or fewer), with outputs that truncate honestly: a truncated flag plus totals, never a clipped string.
 - Both API surfaces: the 15 imperative tools plus a declarative Lab Report form with toolname and tooldescription and deliberately no toolautosubmit, which glows with :tool-form-active while the agent fills it, and only the human presses Submit.
 - An in-page approval flow with batch approval (approve the next N proposals after the first explicit yes), because requestUserInteraction is spec-draft, and structured needs_human escalation returns with context and a suggestion on faulted benches.
@@ -53,7 +54,7 @@ ChatGPT (primary runtime):
 
 1. In a new ChatGPT conversation, paste: https://chatgpt.com/codex/deeplink?url=https%3A%2F%2Fiamtanmaypro.github.io%2Fsparkbench%2F
    If the deeplink does not open the page, paste the plain URL and ask ChatGPT to open it in its browser.
-2. Type: "Open my electronics workbench and tell me what tools you can see there."
+2. Type: "What is the exact current through each part right now?" The agent calls describe_workbench and read_measurements and quotes numbers that are nowhere on screen. (Ask it instead what is on the bench and it will just read the canvas and skip the tools: ChatGPT's browser can both see the page and call tools, and it takes the cheapest path. Sparkbench's tools are designed to return what the screen cannot, so the tool path wins on merit.)
 3. Type: "Teach me series vs parallel. Switch me to lesson 2, explain the seeded circuit, then rebuild it so the two bulbs are in parallel and both glow bright. Propose each change to me and wait for my approval." Approve the cards (batch approve after the first).
 4. Break the circuit, then type: "Why are the bulbs dark now?" Then: "Open lesson 4 and figure out why the LED is dark. Leave me a note about it." Fix the burned LED yourself when the agent hands control back.
 5. Type: "Fill in the lab report for me: name Tanmay, what I built: the lesson 2 parallel bulbs circuit, observed vs expected: in series both bulbs were dim, in parallel both glow bright." Press Submit yourself.
@@ -64,6 +65,6 @@ Chrome 153+:
 2. Open the live app; the tools register with no install. Use the Model Context Tool Inspector extension.
 3. On a second clean profile with no flags, open the same URL: once the origin-trial token is live in the page (enrollment pending at submission time), WebMCP works for a plain visitor. Until then, the flag route above is the reliable Chrome path.
 
-Three prompts to try: "What is wrong with my circuit?" (open lesson 4 first), "Build me a voltage divider" (lesson 5), and "Why is the LED dark?" (lesson 4).
+Three prompts to try: "What is the exact current through each part right now?" (any lesson), "Rewire this so both bulbs are bright, asking me before each change" (lesson 2, this is the approval-card moment), and "Open lesson 4 and diagnose the dead part from the readings" (lesson 4).
 
 No agent needed: dismiss the banner and the full lab works mouse-only.

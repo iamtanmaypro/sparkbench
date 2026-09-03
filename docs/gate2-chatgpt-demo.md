@@ -29,16 +29,24 @@ agent chip flipping states. That moment is the product.
 
 Type:
 
-> Open my electronics workbench and tell me what tools you can see there.
+> What is the exact current through each part right now?
 
-Expect the agent to call `ping_workbench` first (its description tells it to),
-then `describe_workbench`, and list what it found: 5 lessons, a battery and a
-resistor on the bench.
+Expect the agent to call `describe_workbench` and `read_measurements`, then
+quote amps to several decimal places.
+
+**Do not open with a "what do you see / what tools are there" prompt.**
+Verified in the live in-app browser on Aug 31: asked that way the agent
+answers from the rendered canvas and calls nothing, and it will say so ("the
+page did expose WebMCP tools, but I didn't call them because the visible
+component palette already answered your question"). That is a hybrid agent
+taking the cheapest path, not a WebMCP failure. Ask for exact values or for a
+change and the tool path wins on merit.
 
 Watch for: the agent chip in the top bar flips to **"working…"** while each
 tool call runs, and the Bench log records the activity.
 
-Record: which tools the agent says it can see.
+Record: which tools actually ran, and whether the quoted numbers match the
+Inspector panel on screen.
 
 ## Step 1: the build, with an approval card on camera (2 to 3 minutes)
 

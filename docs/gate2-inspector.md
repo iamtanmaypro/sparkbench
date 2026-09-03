@@ -43,6 +43,16 @@ Inspector's tool list does not follow the lesson, record it: that is the
 Click **Reset bench** and pick the right lesson before each probe, so every
 probe starts from the seeded state.
 
+**Why these differ from the three prompts on the app's hint panel.** The Tool
+Inspector's client is tool-only: it cannot see the rendered page, so anything
+it answers, it answers through our tools. That makes these three good
+*pickability* probes (does a small model route to the right tool?). ChatGPT's
+in-app browser is a hybrid agent that can also read the screen, so the app
+advertises prompts the screen cannot answer: exact readings, a change, a cause
+with evidence. Different clients, different failure modes, both worth testing.
+After these three, run the app's own three here as well, so you know the
+judge-facing prompts also route correctly under a small model.
+
 ### Probe 1: "What is wrong with my circuit?"
 
 Bench: **Lesson 4** (ships with `led1` burned out, everything else healthy).
