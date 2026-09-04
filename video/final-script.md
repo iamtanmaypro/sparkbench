@@ -1,44 +1,45 @@
 # Sparkbench demo video: script and recording plan
 
-Audience: the WebMCP judges. They built this standard. So no explaining what
-WebMCP is, no basics. Every second goes on what they can't already know, which
-is how this app uses it and what I ran into.
+Two rules this script holds to, so it stops drifting:
+  1. Sound like Tanmay. First person, warm, the real reason you built it.
+  2. Never explain what WebMCP is. The judges wrote it. Spend that time on how
+     you used it and what you hit.
 
 Method: record live, pause while the agent thinks, resume when it lands.
 Two prompts. About 2:50, hard cap 2:55.
-
-Tone: talk like you're showing this to another engineer who gets it. Direct, not
-chatty, no wind-up.
 
 ---
 
 ## SETUP (before you record)
 
 1. Live app in ChatGPT's in-app browser, fresh conversation.
-2. **Reset bench**, open **Lesson 5, Free Build**. Empty bench.
-3. ChatGPT's left panel wide enough that the tool trace is readable. It prints
-   the tool names as they run. That is your evidence, don't crop it.
-4. Both prompts copied and ready.
+2. **Reset bench**, open **Lesson 5, Free Build**. Empty bench on screen.
+3. ChatGPT's left panel wide enough to read the tool trace. That's your
+   evidence, don't crop it out.
+4. Both prompts copied ready to paste.
 
 ---
 
-# SEGMENT 1 (recording) What it is, and why a canvas
+# SEGMENT 1 (recording) Over the empty bench
 
-SCREEN: empty bench.
+> Hey, I'm Tanmay, and this is Sparkbench.
 
-> Hey, I'm Tanmay. This is Sparkbench.
+> So I'm a student, and I study with AI basically every day. And the thing that
+> always got me is that when I'm stuck on something like a circuit, the AI can
+> explain it to me perfectly, but it can't touch the thing I'm actually
+> building. It's just talking at me from a chat window while I'm the one
+> fumbling with the wires.
 
-> It's an electronics lab in the browser with a real circuit solver behind it,
-> and it registers fifteen WebMCP tools so a student and their agent can work
-> the same bench at the same time.
+> So I built the bench where it can. It's a proper electronics lab with a real
+> circuit solver behind it, and it registers fifteen WebMCP tools, so my agent
+> and I are working the same bench at the same time.
 
-> I picked a circuit simulator on purpose, because a canvas is close to the
-> worst case for an agent. There's no DOM worth reading, there's no button that
-> means connect this terminal to that one, and the ground truth is numbers a
-> solver computed a frame ago. Without tools there's genuinely nothing to work
-> with. So here WebMCP isn't a nicer path, it's the only way in.
+> And I picked a circuit canvas on purpose, because it's about the worst thing
+> you can hand an agent. No DOM worth reading, nothing on screen that means
+> connect this terminal to that one, and the real answer is a number the solver
+> worked out a frame ago. Without tools there's just nothing there.
 
-> Bench is empty. I'll let the agent build it.
+> Anyway, it's empty right now. Let's let it build.
 
 Paste PROMPT 1.
 
@@ -53,30 +54,31 @@ Resume when the first approval card appears.
 
 ---
 
-# SEGMENT 2 (recording) The trace, and the write path
+# SEGMENT 2 (recording) The trace, and the approvals
 
-SCREEN: cursor on the tool trace, then the cards, then parts landing.
+SCREEN: cursor on the tool trace, then the cards, then the parts landing.
 
-> There's the trace. It grounds itself with describe_workbench, then
-> place_component and connect.
+> And there's the trace on the left. It grounds itself with describe_workbench,
+> then place_component and connect to actually build the thing.
 
-> And the writes don't execute. They return a proposal, the page renders an
-> approval card, and the mutation only runs when I click it. Reads are flat and
-> always registered, writes have to ask. requestUserInteraction isn't shipped
-> yet, so that approval flow lives in the page.
+> This is the part I care about most. The writes don't just run. They come back
+> as a proposal, the page puts up an approval card, and nothing changes until I
+> click it. Reads are open, writes have to ask. requestUserInteraction isn't
+> shipped yet, so that flow lives in the page.
 
-(approve the first card, let it land, batch approve the rest)
+(approve the first, let it land, batch approve the rest)
 
-> Battery, two bulbs in parallel, lit. Everything the agent placed stays tagged.
+> Battery, two bulbs in parallel, both lit. And everything it placed stays
+> tagged as the agent's, so I can always see who did what.
 
 ## >>> PAUSE <<<
-**Reset bench.** Resume, paste PROMPT 2 as you say the next line.
+**Reset bench.** Resume and paste PROMPT 2 as you say the next line.
 
 ---
 
 # SEGMENT 3 (recording)
 
-> Now one with a number in it.
+> Okay, now one with a number in it.
 
 ### PROMPT 2
 
@@ -89,32 +91,34 @@ Resume when the voltmeter reads.
 
 ---
 
-# SEGMENT 4 (recording) It checks itself
+# SEGMENT 4 (recording) It checks its own work
 
 SCREEN: parts placed by Agent, voltmeter at 1.000 V.
 
-> It chose the resistor values, placed and wired everything, put a voltmeter on
-> the output, then called read_measurements and checked itself against the
-> solver. One point zero zero zero volts. It measured instead of claiming.
+> So it chose the resistor values itself, placed everything, wired it up, put a
+> voltmeter on the output, and then called read_measurements and checked itself
+> against the solver. One point zero zero zero volts. It measured, instead of
+> just telling me it worked.
 
 ---
 
-# SEGMENT 5 (recording) What's underneath, and the thing I didn't expect
+# SEGMENT 5 (recording) Underneath, and the bit I didn't expect
 
 SCREEN: Chrome with the Model Context Tool Inspector, tool list visible. Switch
-a lesson so the toolset changes on screen.
+a lesson so the toolset visibly changes.
 
-> Underneath: the toolset moves with the lesson, so the diagnosis tool doesn't
-> exist until you reach the fault lesson. Reads carry readOnlyHint, sticky notes
-> carry untrustedContentHint because a human wrote them, and every output stays
-> inside the character budget.
+> A few things underneath. The toolset moves with the lesson, so the diagnosis
+> tool doesn't even exist until you reach the fault lesson. Reads carry
+> readOnlyHint, the sticky notes carry untrustedContentHint because a human
+> wrote them, and every output stays inside the budget.
 
-> And the thing I didn't expect. In ChatGPT's in-app browser the agent can read
-> the rendered page and call my tools, and it takes whichever is cheaper. Ask it
-> what's on the bench and it just looks at the canvas and never calls anything,
-> which is correct of it. So the tools have to return what looking can't
-> produce: exact solver values, terminal level wiring, the specific check that's
-> failing. Designing for that competition was most of the actual work.
+> And here's the bit I genuinely didn't expect. In ChatGPT's browser the agent
+> can read the rendered page and call my tools, and it'll take whichever is
+> cheaper. Ask it what's on the bench and it just looks at the canvas and never
+> calls anything, which is fair enough. So the tools have to hand back what
+> looking can't give you: the exact solver values, the terminal level wiring,
+> the specific check that's failing. Designing around that was most of the
+> actual work.
 
 ---
 
@@ -122,19 +126,20 @@ a lesson so the toolset changes on screen.
 
 SCREEN: finished bench, then live URL and repo.
 
-> Sparkbench is live, it's open source, and the registrations are in
-> src/webmcp. Thanks for watching.
+> That's Sparkbench. It's live, it's open source, and the tool registrations are
+> all in src/webmcp. Thanks for watching.
 
 ---
 
 ## Lines to land
 
-"Without tools there's genuinely nothing to work with."
-"It measured instead of claiming."
-"The tools have to return what looking can't produce."
+"It's just talking at me from a chat window while I'm the one fumbling with the
+wires."
+"It measured, instead of just telling me it worked."
+"The tools have to hand back what looking can't give you."
 
 ## Notes
 
-- Pauses make each segment its own clip. A bad take costs one segment.
+- Each segment is its own clip, so a bad take costs one segment.
 - If it wires them in series, say "wired so both stay lit" and move on.
 - Long? Cut the first paragraph of Segment 5. Never cut the second.
