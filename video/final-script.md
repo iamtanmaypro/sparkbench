@@ -1,47 +1,46 @@
 # Sparkbench demo video: script and recording plan
 
-Method: record live, talking as you go. Pause while the agent thinks, resume
-when the result lands. Two prompts. About 2:50 finished, hard cap 2:55.
+Audience: the WebMCP judges. They built this standard. So no explaining what
+WebMCP is, no basics. Every second goes on what they can't already know, which
+is how this app uses it and what I ran into.
 
-THE POINT OF THIS VIDEO: this is a WebMCP hackathon, so WebMCP has to be visible
-the whole way through, not mentioned once at the end. Three things carry it:
-  1. You say what WebMCP is in the first twenty seconds.
-  2. You point at ChatGPT's tool trace and read the tool names out loud.
-  3. You say plainly why this is impossible without it.
+Method: record live, pause while the agent thinks, resume when it lands.
+Two prompts. About 2:50, hard cap 2:55.
+
+Tone: talk like you're showing this to another engineer who gets it. Direct, not
+chatty, no wind-up.
 
 ---
 
-## SETUP (before you hit record)
+## SETUP (before you record)
 
 1. Live app in ChatGPT's in-app browser, fresh conversation.
-2. **Reset bench**, then open **Lesson 5, Free Build**. Empty bench on screen.
-3. Make sure ChatGPT's left panel is wide enough that the tool trace is
-   readable. That panel prints the tool names as they run
-   (Listed website tools, Ping workbench, Describe workbench, Read
-   measurements). It is the best proof in the whole video. Do not crop it out.
-4. Both prompts copied ready to paste.
+2. **Reset bench**, open **Lesson 5, Free Build**. Empty bench.
+3. ChatGPT's left panel wide enough that the tool trace is readable. It prints
+   the tool names as they run. That is your evidence, don't crop it.
+4. Both prompts copied and ready.
 
 ---
 
-# SEGMENT 1 (recording) Intro, and what WebMCP actually is
+# SEGMENT 1 (recording) What it is, and why a canvas
 
 SCREEN: empty bench.
 
-> Hey, I'm Tanmay, and this is Sparkbench, my submission for the WebMCP
-> Challenge.
+> Hey, I'm Tanmay. This is Sparkbench.
 
-> If you haven't come across WebMCP yet, it's a new browser standard that lets a
-> website hand an AI agent a set of real tools, instead of leaving it to squint
-> at the screen and guess where to click.
+> It's an electronics lab in the browser with a real circuit solver behind it,
+> and it registers fifteen WebMCP tools so a student and their agent can work
+> the same bench at the same time.
 
-> I'm a student, I study with AI, and what bugged me is that when I'm stuck on
-> a circuit, the AI explains it perfectly but can't touch the thing I'm
-> building. So this is Sparkbench: an electronics lab in the browser with a real
-> circuit simulator behind it, and the page registers fifteen WebMCP tools so my
-> agent can work at the bench with me. Right now it's empty, so let's give it
-> something to do.
+> I picked a circuit simulator on purpose, because a canvas is close to the
+> worst case for an agent. There's no DOM worth reading, there's no button that
+> means connect this terminal to that one, and the ground truth is numbers a
+> solver computed a frame ago. Without tools there's genuinely nothing to work
+> with. So here WebMCP isn't a nicer path, it's the only way in.
 
-Paste PROMPT 1, hit enter.
+> Bench is empty. I'll let the agent build it.
+
+Paste PROMPT 1.
 
 ### PROMPT 1
 
@@ -54,32 +53,30 @@ Resume when the first approval card appears.
 
 ---
 
-# SEGMENT 2 (recording) Name the tools out loud, then approve
+# SEGMENT 2 (recording) The trace, and the write path
 
-SCREEN: point your cursor at the tool trace in ChatGPT's panel while you say
-this. Then the cards, then the parts landing.
+SCREEN: cursor on the tool trace, then the cards, then parts landing.
 
-> And look at the panel on the left, ChatGPT is showing every tool it calls. It
-> listed the site's tools, called describe_workbench to see the bench, and now
-> place_component and connect to build it.
+> There's the trace. It grounds itself with describe_workbench, then
+> place_component and connect.
 
-> And here's the part I care about most. The tools that change something don't
-> just run, they come back as a card I have to approve. That's how I registered
-> them: reads are open, writes have to ask.
+> And the writes don't execute. They return a proposal, the page renders an
+> approval card, and the mutation only runs when I click it. Reads are flat and
+> always registered, writes have to ask. requestUserInteraction isn't shipped
+> yet, so that approval flow lives in the page.
 
-(approve the first card, let the part land, batch approve the rest)
+(approve the first card, let it land, batch approve the rest)
 
-> There's the battery, both bulbs wired in parallel, and they're lit. Everything
-> the agent placed is tagged, so I can always see what was me and what was it.
+> Battery, two bulbs in parallel, lit. Everything the agent placed stays tagged.
 
 ## >>> PAUSE <<<
-Click **Reset bench**. Resume, and paste PROMPT 2 as you say the next line.
+**Reset bench.** Resume, paste PROMPT 2 as you say the next line.
 
 ---
 
 # SEGMENT 3 (recording)
 
-> Now something harder. I'll ask it for an exact number.
+> Now one with a number in it.
 
 ### PROMPT 2
 
@@ -88,38 +85,36 @@ Make a voltage divider that outputs exactly 1.00 V.
 ```
 
 ## >>> PAUSE <<<
-Resume when the voltmeter is reading.
+Resume when the voltmeter reads.
 
 ---
 
-# SEGMENT 4 (recording) The result
+# SEGMENT 4 (recording) It checks itself
 
-SCREEN: parts placed by Agent, voltmeter reading 1.000 V.
+SCREEN: parts placed by Agent, voltmeter at 1.000 V.
 
-> It picked the resistor values, placed every part, wired it up, and put a
-> voltmeter on the output. Then it called read_measurements, which hands back
-> what the simulator actually computed, not what the screen looks like. One
-> point zero zero zero volts. It didn't tell me it worked, it went and measured.
+> It chose the resistor values, placed and wired everything, put a voltmeter on
+> the output, then called read_measurements and checked itself against the
+> solver. One point zero zero zero volts. It measured instead of claiming.
 
 ---
 
-# SEGMENT 5 (recording) Why this needs WebMCP
+# SEGMENT 5 (recording) What's underneath, and the thing I didn't expect
 
-SCREEN: quick scroll of the lessons list, then Chrome with the Model Context
-Tool Inspector open showing the fifteen tools.
+SCREEN: Chrome with the Model Context Tool Inspector, tool list visible. Switch
+a lesson so the toolset changes on screen.
 
-> There are guided lessons in here too, it can diagnose a broken circuit and
-> tell you which part is dead, and it can fill in your lab report.
+> Underneath: the toolset moves with the lesson, so the diagnosis tool doesn't
+> exist until you reach the fault lesson. Reads carry readOnlyHint, sticky notes
+> carry untrustedContentHint because a human wrote them, and every output stays
+> inside the character budget.
 
-> But why does any of this need WebMCP? Try it without. The agent's looking at
-> a canvas. There's no button that says connect this terminal to that one, no
-> text on screen saying the output is one volt. It'd have to guess coordinates
-> and drag wires it can't see, and it'd break the second anything moved.
-
-> With WebMCP none of that happens. The page declares the tools, the agent calls
-> them by name, and the toolset even changes with the lesson, so it only ever
-> sees the tools it should have. That's the difference between an agent
-> pretending to use your app and actually using it.
+> And the thing I didn't expect. In ChatGPT's in-app browser the agent can read
+> the rendered page and call my tools, and it takes whichever is cheaper. Ask it
+> what's on the bench and it just looks at the canvas and never calls anything,
+> which is correct of it. So the tools have to return what looking can't
+> produce: exact solver values, terminal level wiring, the specific check that's
+> failing. Designing for that competition was most of the actual work.
 
 ---
 
@@ -127,22 +122,19 @@ Tool Inspector open showing the fifteen tools.
 
 SCREEN: finished bench, then live URL and repo.
 
-> I think this is where the web is going. Sparkbench is live and it's open
-> source, so go try it. Thanks for watching.
+> Sparkbench is live, it's open source, and the registrations are in
+> src/webmcp. Thanks for watching.
 
 ---
 
-## Lines to land properly
+## Lines to land
 
-"It just hands the agent real tools instead of making it guess where to click."
-"It didn't tell me it worked, it went and measured."
-"The difference between an agent pretending to use your app and actually using
-it."
+"Without tools there's genuinely nothing to work with."
+"It measured instead of claiming."
+"The tools have to return what looking can't produce."
 
 ## Notes
 
-- Pauses mean every segment is its own clip. One bad take costs one segment.
-- If it wires the bulbs in series, say "and it wired them so both stay lit" and
-  move on.
-- Running long? Cut the "guided lessons" sentence in Segment 5. Never cut the
-  paragraph after it.
+- Pauses make each segment its own clip. A bad take costs one segment.
+- If it wires them in series, say "wired so both stay lit" and move on.
+- Long? Cut the first paragraph of Segment 5. Never cut the second.
