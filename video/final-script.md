@@ -1,88 +1,103 @@
-# Sparkbench demo video: final script
+# Sparkbench demo video: script
 
-Target 2:45. Hard cap 2:55. Record screen silent first, cut the agent's thinking
-time out, then lay the voiceover on top. Speak it casually, like showing a friend
-something you are pleased with. Contractions are good. Do not read it stiffly.
+Roughly 2:50 spoken. Hard cap 2:55 on export.
+Talk like you're showing this to a friend. Contractions, normal pace, let
+sentences run into each other. Do not clip the words short.
+
+IMPORTANT: keep the app alive on screen from the very first frame, with the
+agent already mid-build, so the project is visibly working while you introduce
+yourself.
 
 ---
 
-## Beat 1 (0:00 to 0:12) Cold open, already mid-action
+## 1. Intro (0:00 to 0:30)
 
-SCREEN: ChatGPT's in-app browser on Sparkbench, lesson 2, an approval card up.
-You click Approve, the wire lands, the bulbs come up bright.
+SCREEN: Sparkbench in ChatGPT's in-app browser, agent working, an approval card
+sitting there, bulbs coming up bright as you talk.
 
-> That's my AI agent, and it's building a circuit on my workbench right now.
-> See this card? It can't touch anything until I say yes.
+> Hey, I'm Tanmay, and this is Sparkbench, my submission for the WebMCP
+> Challenge. So I'm a student, and like a lot of people now, I study with AI.
+> And one thing always bugged me. When I'm stuck on a circuit, the AI can
+> explain it to me perfectly, it'll write me paragraphs about voltage and
+> current, but it cannot touch the circuit I'm actually building. It can't see
+> my wiring, it can't read my meters, it can't fix anything. It's just talking
+> at me from a chat window.
 
-## Beat 2 (0:12 to 0:35) The problem
+## 2. What it is (0:30 to 0:52)
 
-SCREEN: plain ChatGPT explaining series vs parallel in text, slow scroll.
-Then hard cut back to the Sparkbench canvas.
+SCREEN: slow pan over the bench, palette, meters, the lessons list.
 
-> Here's the thing about learning with an AI. It can explain a circuit
-> beautifully. It just can't touch the one I'm actually building. It can't see
-> my wiring, it can't read my meters, it can't show me anything. So I built
-> Sparkbench.
+> So that's what I built. Sparkbench is a little electronics lab that runs in
+> your browser, with a real circuit simulator behind it, so the numbers you see
+> are actual physics. And the whole idea is that my AI agent works at the same
+> bench I do. Same canvas, same circuit, at the same time.
 
-## Beat 3 (0:35 to 1:30) The rewire. This is the hero.
+## 3. Demo one, the rewire (0:52 to 1:35)
 
-SCREEN: lesson 2, two dim bulbs. Type the prompt. Agent calls tools, proposes,
-cards stack. Approve the first one explicitly. Use Approve next N for the rest.
-Bulbs go bright. Panel reads Goal complete.
+SCREEN: lesson 2. Type the prompt. Cards stack, approve the first, batch the
+rest, bulbs go bright, panel reads Goal complete.
 
 PROMPT: Rewire this so both bulbs are bright, and ask me before each change
 
-> Two bulbs in series, and they're dim. So I ask my agent to fix it. Watch what
-> it does, because it isn't guessing from a screenshot. It calls this page's
-> tools, reads the actual circuit solver, and then it asks. Every change comes
-> back as a card I have to approve. I approve, and the wire appears.
-> (beat)
-> In series each bulb was getting one point four nine volts. In parallel it's
-> two point nine. Almost four times the power, and you can just see it.
+> Here I've got two bulbs wired in series, and they're dim. So I just ask my
+> agent to fix it. And watch, because it isn't guessing from a screenshot. It's
+> calling tools that this page hands it, reading the real solver values, and
+> then proposing every single change back to me. Nothing happens until I
+> approve it. I hit approve, the wire lands, and the bulbs go bright. In series
+> each bulb was getting one point four nine volts. In parallel, two point nine.
 
-## Beat 4 (1:30 to 2:10) The one I like. Free build.
+## 4. Demo two, the divider (1:35 to 2:05)
 
-SCREEN: free build, empty bench. Type the prompt. Agent places battery, both
-resistors, wires them, adds the voltmeter, badges appear, reads 1.000 V,
-lesson flips to Goal complete.
+SCREEN: free build, empty bench. Type the prompt. Agent places everything,
+badges appear, voltmeter reads 1.000 V, lesson completes.
 
 PROMPT: Make a voltage divider that outputs exactly 1.00 V
 
-> Now here's the part I like. I ask for a voltage divider that outputs exactly
-> one volt. It picks the resistors, places every part, wires the whole thing,
-> puts a voltmeter on the output, and then it checks its own work against the
-> simulation.
-> (beat)
-> One point zero zero zero volts. It didn't tell me it worked. It measured.
+> This one's my favourite. I ask for a voltage divider that outputs exactly one
+> volt. It picks the resistor values, places every part, wires it up, puts a
+> voltmeter on the output, and then it measures its own work. One point zero
+> zero zero volts. It didn't just tell me it worked, it went and checked.
 
-## Beat 5 (2:10 to 2:32) Under the hood
+## 5. Why WebMCP (2:05 to 2:38)
 
-SCREEN: Chrome with the Model Context Tool Inspector listing tools. Switch
-lessons so the toolset visibly changes. Quick flash of register.ts.
+SCREEN: Chrome with the Model Context Tool Inspector open, tool list visible.
+Switch a lesson so the toolset visibly changes. Brief flash of register.ts.
 
-> Underneath, this is fifteen WebMCP tools registered on document dot
-> modelContext. The reads are always available, every write goes through that
-> approval card, and the toolset changes with the lesson, so my agent only ever
-> sees the tools it should have.
+> And this is really why WebMCP matters, because without it an agent has to do
+> all of that by looking at pixels. It has to find the component, guess where
+> to click, drag a wire across a canvas to a terminal it can't properly see.
+> That's close to impossible, and it breaks the second anything moves. With
+> WebMCP, the page just hands the agent real tools. There's fifteen of them
+> here. It asks for measurements and gets actual numbers back. It says connect
+> this terminal to that one, and it works, every time. That's the difference
+> between an agent pretending to use your app and genuinely using it.
 
-## Beat 6 (2:32 to 2:50) Close
+## 6. Close (2:38 to 2:52)
 
-SCREEN: wide shot of the finished bright circuit, then live URL and repo URL.
+SCREEN: wide shot of the finished bright circuit, then the live URL and repo.
 
-> Sparkbench. A human and an agent at the same bench, with real physics, and me
-> on every single change. It's live, it's open source, go break it.
+> Honestly, I think this is where the web is heading. Sparkbench is live and
+> it's open source, so go try it, go break it. Thanks for watching.
 
 ---
 
-## Never cut
+## Lines to land properly
 
-"It can't touch anything until I say yes" (beat 1) and "It didn't tell me it
-worked. It measured." (beat 4). Those two lines are the whole project.
+"It's just talking at me from a chat window." (the problem, in one line)
+"It didn't just tell me it worked, it went and checked." (the product)
+"The difference between an agent pretending to use your app and genuinely
+using it." (the argument)
 
-## Recording notes
+## Recording
 
-1. Rehearse each prompt once before recording, so you know what the agent does.
-2. Record the screen silent, all the way through, waits included.
-3. Cut the waits. Speed up anything slow. Aim for 2:45 of picture.
-4. Then record the voiceover over the cut, in one sitting.
-5. Export at 2:55 max. Upload PUBLIC to YouTube, not unlisted.
+1. Rehearse both prompts once so nothing surprises you on camera.
+2. Screen record everything silent, waits included.
+3. Cut the waits out, speed up anything slow, get the picture to about 2:50.
+4. Record the voiceover over the finished cut, one sitting, reading this.
+5. Export 2:55 max. Upload PUBLIC to YouTube.
+
+## If your take runs long
+
+418 spoken words, about 2:47 at a normal pace. If you land over 2:55, cut from
+section 2 first (the demo shows what it is anyway). Never cut from section 5,
+that's the argument the whole submission rests on.
