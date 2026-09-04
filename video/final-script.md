@@ -1,19 +1,28 @@
-# Sparkbench demo video: script
+# Sparkbench demo video: script and recording plan
 
-Roughly 2:50 spoken. Hard cap 2:55 on export.
-Talk like you're showing this to a friend. Contractions, normal pace, let
-sentences run into each other. Do not clip the words short.
+Method: record live, talking as you go. Pause the recorder whenever the agent is
+thinking, resume when the answer lands. The pauses do your editing for you.
+Roughly 2:50 of finished video. Hard cap 2:55.
 
-IMPORTANT: keep the app alive on screen from the very first frame, with the
-agent already mid-build, so the project is visibly working while you introduce
-yourself.
+Talk like you're showing this to a friend. Contractions, normal pace, let the
+sentences run into each other.
 
 ---
 
-## 1. Intro (0:00 to 0:30)
+## SETUP (before you hit record)
 
-SCREEN: Sparkbench in ChatGPT's in-app browser, agent working, an approval card
-sitting there, bulbs coming up bright as you talk.
+1. Live app open in ChatGPT's in-app browser, fresh conversation.
+2. Click **Reset bench**, then open **Lesson 2 (Series vs Parallel)**.
+3. **Click the switch sw1 so it closes.** This matters. Left open, every reading
+   is 0 A and the demo has no numbers. Closed, both bulbs sit dim and lit.
+4. Have the two prompts below copied somewhere you can paste from fast.
+5. Close other tabs. Window about 1280x800 so canvas, cards and log all fit.
+
+---
+
+# SEGMENT 1 (recording) Intro and what it is
+
+SCREEN: the bench, lesson 2, two dim bulbs.
 
 > Hey, I'm Tanmay, and this is Sparkbench, my submission for the WebMCP
 > Challenge. So I'm a student, and like a lot of people now, I study with AI.
@@ -23,45 +32,76 @@ sitting there, bulbs coming up bright as you talk.
 > my wiring, it can't read my meters, it can't fix anything. It's just talking
 > at me from a chat window.
 
-## 2. What it is (0:30 to 0:52)
-
-SCREEN: slow pan over the bench, palette, meters, the lessons list.
-
 > So that's what I built. Sparkbench is a little electronics lab that runs in
 > your browser, with a real circuit simulator behind it, so the numbers you see
 > are actual physics. And the whole idea is that my AI agent works at the same
 > bench I do. Same canvas, same circuit, at the same time.
 
-## 3. Demo one, the rewire (0:52 to 1:35)
+NOW, still recording, paste PROMPT 1 and press enter while you say:
 
-SCREEN: lesson 2. Type the prompt. Cards stack, approve the first, batch the
-rest, bulbs go bright, panel reads Goal complete.
+> Here I've got two bulbs wired in series, and they're dim. So I'll just ask my
+> agent to fix that.
 
-PROMPT: Rewire this so both bulbs are bright, and ask me before each change
+### PROMPT 1 (paste this)
 
-> Here I've got two bulbs wired in series, and they're dim. So I just ask my
-> agent to fix it. And watch, because it isn't guessing from a screenshot. It's
-> calling tools that this page hands it, reading the real solver values, and
-> then proposing every single change back to me. Nothing happens until I
-> approve it. I hit approve, the wire lands, and the bulbs go bright. In series
-> each bulb was getting one point four nine volts. In parallel, two point nine.
+```
+Both bulbs are dim right now. Tell me exactly what each one is getting, then rewire it so both are bright. Ask me before each change.
+```
 
-## 4. Demo two, the divider (1:35 to 2:05)
+## >>> PAUSE THE RECORDING <<<
+Let the agent work. Resume the moment the first approval card appears.
 
-SCREEN: free build, empty bench. Type the prompt. Agent places everything,
-badges appear, voltmeter reads 1.000 V, lesson completes.
+---
 
-PROMPT: Make a voltage divider that outputs exactly 1.00 V
+# SEGMENT 2 (recording) The rewire, with approvals on camera
 
-> This one's my favourite. I ask for a voltage divider that outputs exactly one
-> volt. It picks the resistor values, places every part, wires it up, puts a
-> voltmeter on the output, and then it measures its own work. One point zero
-> zero zero volts. It didn't just tell me it worked, it went and checked.
+SCREEN: approval cards stacked. You click Approve on the first one, then use
+Approve next N for the rest. Bulbs go bright. Panel reads Goal complete.
 
-## 5. Why WebMCP (2:05 to 2:38)
+> And watch this, because it isn't guessing from a screenshot. It's calling
+> tools that this page hands it, reading the real solver values, and then
+> proposing every single change back to me. Nothing happens until I approve it.
 
-SCREEN: Chrome with the Model Context Tool Inspector open, tool list visible.
-Switch a lesson so the toolset visibly changes. Brief flash of register.ts.
+(click Approve here, let the wire land, then batch approve the rest)
+
+> I hit approve, the wire lands, and the bulbs go bright. In series each bulb
+> was getting one point four nine volts. In parallel, two point nine.
+
+NOW, still recording, paste PROMPT 2 and press enter while you say:
+
+> This next one's my favourite. I'm going to ask it for something properly hard.
+
+### PROMPT 2 (paste this)
+
+```
+Make a voltage divider that outputs exactly 1.00 V.
+```
+
+## >>> PAUSE THE RECORDING <<<
+Let it switch to free build and build the whole thing. Resume when the voltmeter
+is reading and the lesson shows complete.
+
+---
+
+# SEGMENT 3 (recording) The divider result
+
+SCREEN: free build, battery and both resistors placed by Agent, voltmeter on the
+output reading 1.000 V, Goal complete.
+
+> I asked for a voltage divider that outputs exactly one volt. It picked the
+> resistor values, placed every part, wired it up, put a voltmeter on the
+> output, and then it measured its own work. One point zero zero zero volts. It
+> didn't just tell me it worked, it went and checked.
+
+## >>> PAUSE THE RECORDING <<<
+Switch over to Chrome with the Model Context Tool Inspector open on the app.
+
+---
+
+# SEGMENT 4 (recording) Why WebMCP
+
+SCREEN: Chrome, Tool Inspector showing the tool list. Switch a lesson so the
+toolset visibly changes. Quick flash of src/webmcp/register.ts.
 
 > And this is really why WebMCP matters, because without it an agent has to do
 > all of that by looking at pixels. It has to find the component, guess where
@@ -72,32 +112,46 @@ Switch a lesson so the toolset visibly changes. Brief flash of register.ts.
 > this terminal to that one, and it works, every time. That's the difference
 > between an agent pretending to use your app and genuinely using it.
 
-## 6. Close (2:38 to 2:52)
+---
 
-SCREEN: wide shot of the finished bright circuit, then the live URL and repo.
+# SEGMENT 5 (recording) Close
+
+SCREEN: back to the finished bright circuit, then the live URL and repo on screen.
 
 > Honestly, I think this is where the web is heading. Sparkbench is live and
 > it's open source, so go try it, go break it. Thanks for watching.
 
 ---
 
+## Optional third demo (only if you're under time)
+
+Drop this in after Segment 3 if the video is running short. Costs about 20
+seconds of narration.
+
+```
+Open lesson 4 and diagnose the dead part from the readings.
+```
+
+> And when something's actually broken, it finds it. That's lesson four, it
+> ships with a burned out LED, and the agent reads the meters, points at the
+> dead part, and hands control back to me to replace it.
+
+---
+
 ## Lines to land properly
 
-"It's just talking at me from a chat window." (the problem, in one line)
+"It's just talking at me from a chat window." (the problem)
 "It didn't just tell me it worked, it went and checked." (the product)
 "The difference between an agent pretending to use your app and genuinely
 using it." (the argument)
 
-## Recording
+## If a take goes wrong
 
-1. Rehearse both prompts once so nothing surprises you on camera.
-2. Screen record everything silent, waits included.
-3. Cut the waits out, speed up anything slow, get the picture to about 2:50.
-4. Record the voiceover over the finished cut, one sitting, reading this.
-5. Export 2:55 max. Upload PUBLIC to YouTube.
+Re-record just that segment. The pauses mean every segment is already a separate
+clip, so one bad take doesn't cost you the whole video.
 
 ## If your take runs long
 
 418 spoken words, about 2:47 at a normal pace. If you land over 2:55, cut from
-section 2 first (the demo shows what it is anyway). Never cut from section 5,
-that's the argument the whole submission rests on.
+the "so that's what I built" paragraph in Segment 1. The demo shows what it is
+anyway. Never cut Segment 4, that's the argument the submission rests on.
