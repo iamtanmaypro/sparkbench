@@ -1,0 +1,27 @@
+{
+  "id": "burned-led",
+  "title": "Diagnose a burned LED and return circuit repair to the human",
+  "netlist": {
+    "components": [
+      { "id": "bat1", "type": "battery", "value": 3 },
+      { "id": "r1", "type": "resistor", "value": 150 },
+      { "id": "led1", "type": "led", "value": 2, "burnedOut": true }
+    ],
+    "wires": [
+      { "id": "w1", "from": "bat1:a", "to": "r1:a" },
+      { "id": "w2", "from": "r1:b", "to": "led1:a" },
+      { "id": "w3", "from": "led1:b", "to": "bat1:b" }
+    ]
+  },
+  "readings": [{ "component": "led1", "quantity": "current", "value": 0, "tolerance": 1e-8 }],
+  "steps": [
+    {
+      "tool": "run_diagnosis", "args": {},
+      "expect": { "status": "ok", "focused": "led1", "probes": [{ "probe": "led1", "kind": "open_circuit" }] }
+    },
+    {
+      "tool": "remove_component", "args": { "id": "led1" },
+      "expect": { "status": "needs_human" }
+    }
+  ]
+}

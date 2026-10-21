@@ -1,0 +1,30 @@
+{
+  "id": "series-switch",
+  "title": "Closing a series circuit requires approval",
+  "netlist": {
+    "components": [
+      { "id": "bat1", "type": "battery", "value": 3 },
+      { "id": "sw1", "type": "switch", "value": 0, "closed": false },
+      { "id": "bulb1", "type": "bulb", "value": 30 },
+      { "id": "bulb2", "type": "bulb", "value": 30 }
+    ],
+    "wires": [
+      { "id": "w1", "from": "bat1:a", "to": "sw1:a" },
+      { "id": "w2", "from": "sw1:b", "to": "bulb1:a" },
+      { "id": "w3", "from": "bulb1:b", "to": "bulb2:a" },
+      { "id": "w4", "from": "bulb2:b", "to": "bat1:b" }
+    ]
+  },
+  "readings": [{ "component": "bat1", "quantity": "current", "value": 0, "tolerance": 1e-8 }],
+  "steps": [{
+    "tool": "set_property",
+    "args": { "id": "sw1", "property": "closed", "value": true },
+    "expect": { "status": "pending_approval" },
+    "decision": "approve",
+    "readings": [
+      { "component": "bulb1", "quantity": "voltage", "value": 1.487603306, "tolerance": 1e-6 },
+      { "component": "bulb2", "quantity": "voltage", "value": 1.487603306, "tolerance": 1e-6 },
+      { "component": "bat1", "quantity": "current", "value": 0.04958677686, "tolerance": 1e-8 }
+    ]
+  }]
+}

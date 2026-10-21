@@ -1,0 +1,27 @@
+{
+  "id": "divider-correction",
+  "title": "Correct a voltage divider for battery internal resistance",
+  "netlist": {
+    "components": [
+      { "id": "bat1", "type": "battery", "value": 3 },
+      { "id": "r1", "type": "resistor", "value": 200 },
+      { "id": "r2", "type": "resistor", "value": 100 }
+    ],
+    "wires": [
+      { "id": "w1", "from": "bat1:a", "to": "r1:a" },
+      { "id": "w2", "from": "r1:b", "to": "r2:a" },
+      { "id": "w3", "from": "r2:b", "to": "bat1:b" }
+    ]
+  },
+  "readings": [{ "component": "r2", "quantity": "voltage", "value": 0.9983361065, "tolerance": 1e-8 }],
+  "steps": [{
+    "tool": "set_property",
+    "args": { "id": "r1", "property": "value", "value": 199.5 },
+    "expect": { "status": "pending_approval" },
+    "decision": "approve",
+    "readings": [
+      { "component": "r2", "quantity": "voltage", "value": 1, "tolerance": 1e-8 },
+      { "component": "bat1", "quantity": "current", "value": 0.01, "tolerance": 1e-8 }
+    ]
+  }]
+}

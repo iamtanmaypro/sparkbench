@@ -1,152 +1,117 @@
 # Sparkbench
 
-A browser electronics lab where a student and their AI agent share one workbench through WebMCP. The student builds real DC circuits; the agent reads live measurements, proposes changes that only execute after the student approves them, diagnoses broken circuits, and leaves signed sticky notes. Every component the agent touches glows on screen, so the canvas itself tells the collaboration story.
+**A shared circuit lab for people and browser agents.**
 
-Built during the OpenAI WebMCP Challenge, Aug 26 to Sep 3, 2026. All work in this repo is new; the first commit lands inside the submission window.
+Build DC circuits, inspect live measurements, and let an agent propose changes through WebMCP. Circuit-changing tools use the same application state as the canvas and wait for human approval. The lab also works manually without an agent, account, API key, or backend.
 
-## Live app
+[Open the lab](https://iamtanmaypro.github.io/sparkbench/) · [Run the reference scenarios](docs/SCENARIOS.md) · [Contribute](CONTRIBUTING.md) · [Roadmap](docs/ROADMAP.md)
 
-https://iamtanmaypro.github.io/sparkbench/
+## Why this exists
 
-The app is statically hosted on GitHub Pages (project site, served from the `/sparkbench/` subpath). Before submitting, confirm the URL serves this app and not something else:
+A useful browser agent needs more than a way to click buttons: it needs access to application state, measurable outcomes, and clear permission boundaries. Sparkbench puts those concerns in one inspectable example. A voltage divider can look correct while measuring 0.9983 V instead of 1.00 V; a proposed deletion must leave the circuit intact when the student rejects it.
+
+For learners, there are five editable lessons: Ohm's Law, Series vs Parallel, Switches and Logic, Diagnose the Fault, and Free Build. For developers, the repository includes the simulation engine, WebMCP tools, approval flow, and public JSON scenarios with numerical tolerances and expected decisions.
+
+Sparkbench is an early-stage project maintained by [Tanmay Sharma](https://github.com/iamtanmaypro). It began during the OpenAI WebMCP Challenge in August/September 2026. Its development has been AI-assisted; the commit history records contributions. It is not an official OpenAI or Chrome reference implementation, a WebMCP conformance suite, or a model leaderboard.
+
+## Try it in two minutes
+
+1. [Open the lab](https://iamtanmaypro.github.io/sparkbench/). Dismiss the WebMCP hint if it appears.
+2. Choose **Series vs Parallel** and click the switch on the canvas to close it. Both bulbs light dimly in series.
+3. Select a bulb to inspect its measurements. Use the lesson hints to rebuild the circuit with parallel branches.
+4. Choose **Diagnose the Fault** to inspect a circuit with a burned LED, or **Free Build** to start your own experiment.
+
+The lab report stays in the page: you can fill it manually, or a compatible agent can fill it for you. The human submits it.
+
+## Run locally
+
+Use Node.js 22.12 or later and npm. CI uses Node 22.
 
 ```sh
-curl -s https://iamtanmaypro.github.io/sparkbench/ | grep -o "<title>[^<]*</title>"
-# expected: <title>Sparkbench - build circuits with your AI agent</title>
+git clone https://github.com/iamtanmaypro/sparkbench.git
+cd sparkbench
+npm ci
+npm run dev
 ```
 
-To rebuild the GitHub Pages bundle locally, run `npm run build:pages` (it sets the `/sparkbench/` base path; plain `npm run build` keeps the root base for other hosts, such as a later Cloudflare Pages move, which is documented as an optional alternative in [docs/gate1-checklist.md](docs/gate1-checklist.md)).
+```sh
+npm run test:scenarios  # four reusable circuit/tool scenarios
+npm test                # complete automated suite
+npm run lint
+npm run build           # type-check and build at /
+npm run build:pages     # type-check and build at /sparkbench/
+```
 
-## What it is
+The GitHub Actions workflow runs tests, lint, and both builds on pull requests and pushes to main. It does not deploy the app. GitHub Pages currently serves the separately built gh-pages branch.
 
-- A real DC simulation: modified nodal analysis (about 150 lines of TypeScript, Gaussian elimination, no physics engine), with batteries (including internal resistance), resistors, LEDs (forward drop and burnout), bulbs (brightness from power), switches, fuses, ammeters, and voltmeters. Faults are detected and named: short circuit, open circuit, LED burnout, blown fuse.
-- Fifteen imperative WebMCP tools over one shared canvas, registered against `document.modelContext` (with a feature-detected `navigator.modelContext` fallback, since that path is deprecated): a health check, 5 reads, 2 navigation, 4 approval-gated writes, an auto-executing note tool, a proposal-status read, and a lesson-gated diagnosis tool.
-- A human in the loop by design: every write returns a proposal, an on-canvas card waits for the student's click, and `remove_component` carries an honest `destructiveHint`. Sticky notes the agent leaves are annotated `untrustedContentHint`.
-- Five lessons as plain JSON a teacher could edit: Ohm's Law, Series vs Parallel, Switches and Logic, Diagnose the Fault (ships pre-broken), Free Build. Toolsets follow the lesson via `provideContext`/`toolchange`.
-- Both registration surfaces: the 15 imperative tools plus a declarative Lab Report `<form toolname="submit_lab_report">` with no `toolautosubmit`, so the agent fills it and the human always presses Submit.
-- Fully usable with no agent: dismiss the banner and the whole product works mouse-only. That is deliberate; it has to be a coherent product on its own.
+## Reproducible examples
 
-## How to test with an agent (both runtimes)
+| Scenario | Observable result |
+|---|---|
+| Series switch | No circuit change before approval; closing the switch produces about 1.4876 V per bulb. |
+| Parallel veto | Each bulb reads about 2.9032 V; rejecting battery removal preserves the circuit and readings. |
+| Divider correction | A 200/100 ohm divider gives 0.998336 V. Approving 199.5 ohms for the upper resistor gives 1.000000 V. |
+| Burned LED | Diagnosis identifies led1, and a circuit-edit attempt returns needs_human without changing the circuit. |
 
-Before anything: open the live URL in a normal tab and click **Reset bench** in the Lessons panel, so every lesson starts from its seeded circuit. In a plain tab with no WebMCP you will see a dismissible agent-hint banner; that is expected, and the whole lab still works mouse-only. In ChatGPT's browser or a WebMCP-enabled Chrome profile the banner does not appear, which is the quick way to confirm the tools are live.
+The fixtures and replay instructions are in [docs/SCENARIOS.md](docs/SCENARIOS.md). These checks execute the real tools and shared store with scripted human decisions. They do not run a language model or prove that an external browser host discovers the tools.
 
-### Runtime A: ChatGPT's in-app browser
+## Agent integration
 
-1. Start a new ChatGPT conversation and paste the deeplink (swap in the live URL if it changed):
+The app feature-detects `document.modelContext` and then `navigator.modelContext`. If neither is available, the hint banner appears and manual operation remains available. Agent access requires a browser host that actually exposes this experimental API; a normal tab is not enough. A missing banner alone does not prove that an agent can discover and call tools.
 
-   ```
-   https://chatgpt.com/codex/deeplink?url=https%3A%2F%2Fiamtanmaypro.github.io%2Fsparkbench%2F
-   ```
+The [challenge runtime walkthrough](docs/challenge-runtime-guide.md), [ChatGPT demo script](docs/gate2-chatgpt-demo.md), and [Inspector probes](docs/gate2-inspector.md) are historical test procedures. Current host compatibility and origin-trial activation still need fresh external verification. Do not assume the old deeplink or Chrome flag works on your installation.
 
-   If the deeplink does not open the page, paste the plain URL into the conversation and ask ChatGPT to open it in its browser. Either path counts.
-2. Type: `What is the exact current through each part right now?` Expect the agent to call `describe_workbench` and `read_measurements`, then quote real numbers (amps to several decimals) that are nowhere on screen.
+The imperative pool contains 15 tools; active subsets have 12 tools in lesson 1, 14 in lessons 2 and 3, and 15 in lessons 4 and 5. The declarative lab-report form is a separate surface whose exposure depends on the host.
 
-   Why this prompt and not "what do you see": ChatGPT's in-app browser is a hybrid agent. It can read the rendered page AND call our tools, and it takes the cheapest path that answers the question. Ask it what is on the bench and it will read the canvas and skip the tools, which is correct behavior and not a WebMCP failure. Ask for exact values or for a change, and the tool path wins on merit. Every prompt below is built that way.
-3. Type: `Teach me series vs parallel. Switch me to lesson 2, explain the seeded circuit, then rebuild it so the two bulbs are in parallel and both glow bright. Propose each change to me and wait for my approval.` Approve the first card explicitly, then use **Approve next N** for the rest. End state: both bulbs bright and the lesson panel reads **Goal complete. Nice work.**
-4. Break the circuit by hand (delete a wire), then type: `Why are the bulbs dark now?` Then open lesson 4 via `Open lesson 4 and figure out why the LED is dark. Leave me a note about it.` The agent runs `run_diagnosis`, names the burned LED, and leaves a signed note; the fix itself comes back as `needs_human`, which is the designed behavior. You replace the LED, then type `Check my work.` to see `check_answer` pass.
-5. Type: `Fill in the lab report for me...` and watch the form glow while the agent fills it; you press **Submit report**.
+| Tool | Purpose and permission |
+|---|---|
+| ping_workbench | Connection health check |
+| describe_workbench | Components and wiring |
+| read_measurements | Voltage, current, power, and faults |
+| get_lesson_state | Goal and lesson progress |
+| read_notes | Untrusted free-text notes |
+| check_answer | Lesson predicate result |
+| open_lesson | Switch lessons immediately; resets the circuit and pending proposals |
+| focus_component | Focus and highlight a part immediately |
+| place_component | Propose a new part; approval required |
+| connect | Propose a wire; approval required |
+| set_property | Propose a value or switch change; approval required |
+| remove_component | Propose part removal; approval required |
+| add_note | Add an Agent-labelled note immediately; no circuit change |
+| get_proposal_status | Confirm whether a proposal is pending, approved, or rejected |
+| run_diagnosis | Guided fault report and focus, available from lesson 4 |
 
-The full script, including the on-camera approval beat, truncation and abort edge checks: [docs/gate2-chatgpt-demo.md](docs/gate2-chatgpt-demo.md).
+Approval cards also offer an explicit control to approve the next N pending proposals. They are an application interaction boundary, not isolation from a browser extension or host with broader browser access. See [SECURITY.md](SECURITY.md).
 
-### Runtime B: Chrome 153+ (flag profile and origin-trial profile)
+Good prompts for a compatible host:
 
-1. On a clean Chrome profile, enable `chrome://flags/#enable-webmcp-testing`, relaunch, and open the live URL. In DevTools, `document.modelContext` should be an object, not `undefined`.
-2. Install the **Model Context Tool Inspector** extension and open it for the page.
-3. Dynamic toolset check: on Lesson 1 the Inspector lists `ping_workbench`, the 5 reads, `open_lesson`, `focus_component`, and the writes `place_component`, `connect`, `set_property`, `get_proposal_status`, and NOT `remove_component`, `add_note`, or `run_diagnosis`. Switch to Lesson 2: `remove_component` and `add_note` join. Lesson 4: `run_diagnosis` appears. Back to Lesson 1: it disappears.
-4. Second clean profile, no flags touched: open the same URL. The Chrome origin-trial token for `https://iamtanmaypro.github.io` is still pending (enrollment is a Tanmay step in [docs/gate1-checklist.md](docs/gate1-checklist.md)); once the token ships in the page, WebMCP must work for a plain visitor with no flags. If `document.modelContext` is `undefined` there after the token is live, the token is expired or mis-issued; check `chrome://web-internals` and the origin trials console. The ChatGPT in-app browser route and the `chrome://flags/#enable-webmcp-testing` flag path both work today without any token.
-
-The three probe prompts with pass criteria, plus raw-JSON truncation probes: [docs/gate2-inspector.md](docs/gate2-inspector.md).
-
-### Solo (no agent)
-
-Dismiss the banner and use the whole product with the mouse: palette, canvas, wiring, meters, lessons, lab report. No WebMCP required.
-
-## Prompts to try
-
-These three are also on the app's own hint panel:
-
-- `Rewire this so both bulbs are bright, and ask me before each change` (Lesson 2. The canvas exposes no way to drag a wire programmatically, so this is only possible through the tools; every step stacks an approval card. Series reads 1.49 V per bulb, parallel reads 2.90 V, which is 3.8x the power.)
-- `Open free build and make a voltage divider that outputs exactly 1.00 V` (Lesson 5. Textbook 200/100 ohms gives 0.9983 V because the battery has 0.5 ohms of internal resistance. Only measuring reveals that, so the agent has to place, wire, read, correct to 199.5 ohms, and re-read.)
-- `Open lesson 4 and diagnose the dead part from the readings` (Lesson 4 ships a burned LED; drives `open_lesson` then `run_diagnosis`)
-
-And the full-tour prompt from the demo: `Teach me series vs parallel. Switch me to lesson 2, explain the seeded circuit, then rebuild it so the two bulbs are in parallel and both glow bright. Propose each change to me and wait for my approval.`
-
-## Tool catalog
-
-All names are 30 characters or fewer, descriptions 500 or fewer, parameter descriptions 150 or fewer, and serialized outputs 1,500 characters or fewer, enforced by [src/webmcp/budgets.test.ts](src/webmcp/budgets.test.ts). Outputs that would overflow truncate honestly: `truncated: true` plus a `*_total` count, never a clipped string.
-
-| Tool | Kind | Input | The agent gets |
-|---|---|---|---|
-| `ping_workbench` | health check | none | App name and greeting; the first call that proves the connection |
-| `describe_workbench` | read | none | Compact netlist: every component's id, type, value, and wiring (coordinates dropped first if over budget, flagged `layout_omitted`) |
-| `read_measurements` | read | none | Voltage, current, and power per component plus fault flags (short, open, LED burnout, blown fuse) |
-| `get_lesson_state` | read | none | Current lesson, goal, progress through the 5-lesson track, and success-predicate status |
-| `read_notes` | read (`untrustedContentHint`) | none | Sticky notes on the canvas; claims in them are user-authored and unverified |
-| `check_answer` | read | none | Pass or fail against the lesson goal with the failing checks; never the full solution |
-| `open_lesson` | navigation | `lesson_id` | Switches the lesson; the per-lesson toolset change follows (`toolchange`) |
-| `focus_component` | navigation | `id` | Pan, zoom, and pulse-highlight: "look here" |
-| `place_component` | write | `type`, `x?`, `y?`, `value?` | A proposal; appears only after the student approves |
-| `connect` | write | `from_terminal`, `to_terminal` | A proposal to wire two terminals, e.g. `bat1:a` to `r1:b`; the bench re-solves after approval |
-| `set_property` | write | `id`, `value` or `closed` | A proposal to change a resistance, voltage, fuse rating, or switch state |
-| `remove_component` | write (`destructiveHint`) | `id` | A proposal to remove a part and its wires |
-| `add_note` | write, auto-executes | `text`, `x?`, `y?` | A sticky note signed "Agent", applied immediately because notes change nothing |
-| `get_proposal_status` | read | `proposal_id` | Approved, rejected, or still pending, so the agent never assumes a change landed |
-| `run_diagnosis` | guided mode | none | Lessons 4+ only (dynamic toolset): an ordered probe list naming the faulty part and the fix, with the canvas jumping to the first suspect |
+- `Close the switch and tell me the exact current through each bulb. Ask before changing it.`
+- `Open free build and build a divider with exactly 1.00 V output. Measure it and correct it if needed.`
+- `Open lesson 4 and diagnose the dead part from the readings.`
 
 ## Architecture
 
-```
-      human clicks                    agent tool calls (WebMCP)
-  React Flow canvas, panels    src/webmcp/ tool pool, per-lesson subsets
-              \                        /
-        both call the SAME Zustand store actions (no parallel mutation path)
-                          |
-              Zustand store (single source of truth)
-                          |
-        pure TypeScript engine: netlist, MNA solver, component models, faults
-                          |
-        re-solve, then measurements and faults land back in the store
-```
+Both human interactions and agent tools call the same Zustand store actions. Those actions run a pure TypeScript DC solver, update readings and fault flags, evaluate the lesson goal, and persist circuit state locally.
 
-Module map:
+| Directory | Responsibility |
+|---|---|
+| src/engine | Netlist, component models, modified nodal analysis, fault detection |
+| src/store | Shared circuit state, proposals, decisions, persistence |
+| src/webmcp | Tool registration, schemas, descriptions, budgets, approval wrappers |
+| src/lessons | Five JSON lessons and goal predicates |
+| src/ui | Canvas, meters, approval cards, notes, report, and activity log |
+| fixtures/scenarios | Portable example circuits, expected values, and tool decisions |
 
-```
-src/
-  engine/   netlist types, MNA solver, component models, fault detection (pure, framework-free)
-  store/    useBenchStore: components, wires, lesson state, notes, proposals, action log, agent presence
-  webmcp/   useTool.ts hook, register.ts (tool pool), schemas.ts (plain JSON-Schema literals),
-            approvals.ts (proposal flow), diagnosis.ts, toolsets.ts (per-lesson matrix), budgets.test.ts
-  lessons/  schema + 5 lesson JSON files + success-predicate evaluator
-  ui/       Workbench (React Flow), ApprovalCard, AgentChip, ActionLog, LabReportForm, HintPanel, ...
-```
+Start with [register.ts](src/webmcp/register.ts), [approvals.ts](src/webmcp/approvals.ts), and [toolsets.ts](src/webmcp/toolsets.ts). Tool budgets are checked in [budgets.test.ts](src/webmcp/budgets.test.ts): names up to 30 characters, descriptions up to 500, parameter descriptions up to 150, and serialized outputs up to 1,500. Truncated collections carry explicit counts.
 
-Rules that keep the agent honest:
+## Model limits and project status
 
-- Tools wrap store actions only, the exact same actions a human click calls. No agent-only mutation path.
-- Escalation over guessing: on a faulted bench, tools return `{status:"needs_human", context, suggestion}` naming the part to look at.
-- Every `execute` honors the host AbortSignal, and the SPA never navigates during execution.
-- localStorage access is guarded with try/catch.
-- Feature detection: `document.modelContext ?? navigator.modelContext`; when neither exists, a dismissible banner points at these instructions and the app stays fully usable.
+The engine models simplified DC circuits. Batteries include 0.5 ohms of internal resistance; bulbs use fixed resistance; LEDs use a fixed forward drop and a burnout threshold. There is no AC, transient, thermal, or SPICE model. Measurements are simulation results, not physical measurements or electrical safety advice.
 
-### The approval flow
+On 21 October 2026 the original 196 automated tests passed before this maintenance work. The added public scenario replay contributes five checks. Current external-agent compatibility, classroom use, and independent adoption have not been established by these local tests. The [roadmap](docs/ROADMAP.md) lists the next work and the evidence needed to call it done.
 
-A write tool returns immediately with `{status:"pending_approval", proposal_id, summary}`. A card renders on the canvas ("wants to: connect sw1:b to bulb2:b") with Approve and Reject, plus a batch control to approve the next N proposals after the first explicit yes. `get_proposal_status` lets the agent await the outcome instead of assuming it.
-
-### The declarative surface
-
-The Lab Report panel is a `<form toolname="submit_lab_report" tooldescription="...">` with no `toolautosubmit`: the agent fills the fields, the form glows while it works (`:tool-form-active`, with a JS-mirror class on runtimes that do not ship the pseudo-class yet), and only the human presses Submit.
-
-## Development
-
-```sh
-npm install
-npm run dev       # local dev server
-npm run build     # tsc -b + vite production bundle in dist/
-npx vitest run    # 196 unit tests across 21 files, including the tool-budget lint
-```
-
-The registration code a reviewer wants is in `src/webmcp/register.ts` and `src/webmcp/approvals.ts`.
+[Bug reports](https://github.com/iamtanmaypro/sparkbench/issues/new/choose), reproducible runtime reports, and focused pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md). Original challenge copy and recording scripts are retained in copy/, video/, and the historical docs.
 
 ## License
 
-MIT, see [LICENSE](LICENSE). The GitHub About sidebar should show it; the checklist in [docs/github-publish.md](docs/github-publish.md) verifies that after the first push.
+[MIT](LICENSE). You can inspect, modify, and reuse the application and reference scenarios under that license.

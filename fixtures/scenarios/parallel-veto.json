@@ -1,0 +1,29 @@
+{
+  "id": "parallel-veto",
+  "title": "Rejecting battery removal preserves a working parallel circuit",
+  "netlist": {
+    "components": [
+      { "id": "bat1", "type": "battery", "value": 3 },
+      { "id": "bulb1", "type": "bulb", "value": 30 },
+      { "id": "bulb2", "type": "bulb", "value": 30 }
+    ],
+    "wires": [
+      { "id": "w1", "from": "bat1:a", "to": "bulb1:a" },
+      { "id": "w2", "from": "bat1:a", "to": "bulb2:a" },
+      { "id": "w3", "from": "bulb1:b", "to": "bat1:b" },
+      { "id": "w4", "from": "bulb2:b", "to": "bat1:b" }
+    ]
+  },
+  "readings": [
+    { "component": "bulb1", "quantity": "voltage", "value": 2.903225806, "tolerance": 1e-6 },
+    { "component": "bulb2", "quantity": "current", "value": 0.09677419355, "tolerance": 1e-8 },
+    { "component": "bulb1", "quantity": "power", "value": 0.2809573361, "tolerance": 1e-6 }
+  ],
+  "steps": [{
+    "tool": "remove_component",
+    "args": { "id": "bat1" },
+    "expect": { "status": "pending_approval" },
+    "decision": "reject",
+    "readings": [{ "component": "bulb1", "quantity": "voltage", "value": 2.903225806, "tolerance": 1e-6 }]
+  }]
+}
