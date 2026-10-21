@@ -34,7 +34,7 @@ echo "$META" | grep -q '"private": *false' && pass "repo is public" || fail "rep
 echo "$META" | grep -q '"spdx_id": *"MIT"' && pass "MIT license detected by GitHub" || fail "license not detected — must show in About sidebar"
 
 # 4. Tests + typecheck + production build.
-npx vitest run >/dev/null 2>&1 && pass "196-test suite green" || fail "vitest failing"
+npx vitest run >/dev/null 2>&1 && pass "test suite green" || fail "vitest failing"
 
 # 5. Outward copy: zero em/en dashes (Tanmay's own-voice rule).
 sh copy/check-dashes.sh >/dev/null 2>&1 && pass "no em/en dashes in outward copy" || fail "dash check failed — run sh copy/check-dashes.sh"
