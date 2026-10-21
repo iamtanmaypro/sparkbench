@@ -4,7 +4,7 @@ Sparkbench welcomes focused fixes, new teaching scenarios, and reports from peop
 
 ## Start locally
 
-Use Node.js 22.12 or later. From your fork:
+Use Node.js 22.12 or later in the 22.x line, or Node.js 24 or later. From your fork:
 
 ```sh
 npm ci

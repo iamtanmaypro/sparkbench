@@ -25,7 +25,7 @@ The lab report stays in the page: you can fill it manually, or a compatible agen
 
 ## Run locally
 
-Use Node.js 22.12 or later and npm. CI uses Node 22.
+Use Node.js 22.12 or later in the 22.x line, or Node.js 24 or later, and npm. CI uses Node 22.
 
 ```sh
 git clone https://github.com/iamtanmaypro/sparkbench.git
